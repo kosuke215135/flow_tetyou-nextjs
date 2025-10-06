@@ -16,7 +16,7 @@
 - Reactを使用してコンポーネントを作成してください。
 - データベースにはPrisma ORMを使用し、PostgreSQLを利用してください
 - NextJSのベストプラクティスに従ってください。
-- スタイリングにはTailwind CSSを使用してください。
+- スタイリングにはTailwind CSSとshadcn/uiを使用してください。
 - pnpmを使用してパッケージ管理を行ってください。
 - なるべくTypeよりInterfaceを使用してください。
 
@@ -54,3 +54,25 @@
     - 論理的に完全なユニットである変更を優先してください。
     - 常に明確な停止ポイントを提供してください。
             
+# gitのルール
+こちらが命名を相談したときのみ、返答してください
+## ブランチ名
+基本は下記2つで運用して、難しい場合は適宜考える。（Issue 番号をいれて関連づける）
+feature（新機能開発）
+例: feature/#8_add_menu
+
+hotfix（バグ修正）
+例: hotfix/#21_fix_bug
+
+## コミットメッセージ
+Prefix（接頭辞）をつける
+コミットメッセージには Prefix をつける。
+Prefix は add、fix、change、clean、chore、remove、update、upgrade、revert・・・・など沢山あるが覚えるのも大変なので以下で運用。（Emoji はつけない）
+
+add（新規機能・ファイル追加）
+fix（バグやタイポの修正）
+refactor（リファクタリング）
+update（バグではない機能の改善、バージョンアップ等）
+rename（ファイル名の変更）
+remove（ファイルの削除）
+move（ファイルの移動）

@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@prisma/client": "^6.16.3",
     "@tiptap/core": "^3.6.5",
     "@tiptap/extension-code-block-lowlight": "^3.6.5",
     "@tiptap/extension-link": "^3.6.5",
@@ -19,6 +20,7 @@
     "@tiptap/starter-kit": "^3.6.5",
     "lowlight": "^3.3.0",
     "next": "15.5.4",
+    "prisma": "^6.16.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.64.0",
