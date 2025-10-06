@@ -1,4 +1,4 @@
-import { NoteEditor } from "./components/Editor";
+import NoteEditor from "@/app/components/Editor";
 
 export default function Home() {
   return (

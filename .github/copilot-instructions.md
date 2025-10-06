@@ -55,9 +55,10 @@
     - 常に明確な停止ポイントを提供してください。
             
 # gitのルール
-こちらが命名を相談したときのみ、返答してください
+
 ## ブランチ名
-基本は下記2つで運用して、難しい場合は適宜考える。（Issue 番号をいれて関連づける）
+- ブランチ名の相談を受けた際には、下記のルールに従って提案してください。
+- 基本は下記2つで運用して、難しい場合は適宜考える。（Issue 番号をいれて関連づける）
 feature（新機能開発）
 例: feature/#8_add_menu
 
@@ -65,9 +66,10 @@ hotfix（バグ修正）
 例: hotfix/#21_fix_bug
 
 ## コミットメッセージ
-Prefix（接頭辞）をつける
-コミットメッセージには Prefix をつける。
-Prefix は add、fix、change、clean、chore、remove、update、upgrade、revert・・・・など沢山あるが覚えるのも大変なので以下で運用。（Emoji はつけない）
+- commitに適切なタイミングだと判断した際にメッセージを作成してください。
+- Prefix（接頭辞）をつける
+- コミットメッセージには Prefix をつける。
+- Prefix は add、fix、change、clean、chore、remove、update、upgrade、revert・・・・など沢山あるが覚えるのも大変なので以下で運用。（Emoji はつけない）
 
 add（新規機能・ファイル追加）
 fix（バグやタイポの修正）

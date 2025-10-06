@@ -10,15 +10,23 @@ import { all, createLowlight } from "lowlight";
 import Placeholder from "@tiptap/extension-placeholder";
 import { RichEditorToolbar } from "@/app/components/RichEditorToolbar";
 import { useForm } from "react-hook-form";
-import { postNote } from '@/lib/actions';
+import { createNote } from '@/lib/actions';
 import { Editor } from "@tiptap/core";
+import { NoteFormData } from "@/types/note";
 
 
 const lowlight = createLowlight(all);
 
-export function NoteEditor() {
-    // フォームの作成
-    const { setValue } = useForm();
+export default function NoteEditor() {
+    const { setValue, handleSubmit } = useForm<NoteFormData>();
+    
+    const onSubmit = async (data: NoteFormData) => {
+      const response = await createNote(data);
+      if (response.success) {
+        editor?.commands.clearContent();
+      }
+    };
+
     const editor: Editor | null = useEditor({
       extensions: [
         StarterKit,
@@ -38,7 +46,7 @@ export function NoteEditor() {
       onUpdate: ({ editor }) => {
         // JSONに変換
         const json = editor.getJSON();
-        setValue("body", json);
+        setValue("content", json);
       },
     });
 
@@ -47,7 +55,7 @@ export function NoteEditor() {
     }
 
   return (
-    <form action={postNote}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div className="editor-wrapper">
         <EditorContent editor={editor} className="editor" />
         <div className="editor-footer flex items-center gap-2 mt-2">
@@ -63,5 +71,3 @@ export function NoteEditor() {
     </form>
   );
 };
-
-export default Editor;
