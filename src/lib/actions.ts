@@ -34,3 +34,25 @@ export async function createNote(data: NoteFormData) {
     return { success: false, error: 'Failed to create note' }
   }
 }
+
+export async function getNotes() {
+  try {
+    const notes = await prisma.note.findMany({
+      include: {
+        user: {
+          select: {
+            name: true,
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    return { success: true, data: notes }
+  } catch (error) {
+    console.error('Failed to fetch notes:', error)
+    return { success: false, error: 'Failed to fetch notes' }
+  }
+}
