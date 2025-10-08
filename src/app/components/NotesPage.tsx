@@ -5,7 +5,7 @@ import NoteEditor from '@/app/components/Editor';
 import NotesList from '@/app/components/NotesList';
 
 export default function NotesPage() {
-  const [refreshKey, setRefreshKey] = useState<number>(0);
+  const [refresh, setRefreshKey] = useState<number>(0);
 
   // ノートリフレッシュ用のコールバック関数
   const handleNoteRefresh = (): void => {
@@ -27,7 +27,7 @@ export default function NotesPage() {
           {/* ノート一覧セクション */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <NotesList 
-              key={refreshKey}
+              refresh={refresh}
               className="w-full" 
             />
           </div>

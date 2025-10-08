@@ -6,6 +6,7 @@ import NoteCard from './NoteCard'
 import { NoteModel } from '@/types/note'
 
 interface NotesListProps {
+  refresh: number
   className?: string
 }
 
@@ -15,7 +16,7 @@ interface NoteWithUser extends NoteModel {
   }
 }
 
-export default function NotesList({ className = '' }: NotesListProps) {
+export default function NotesList({ refresh, className = '' }: NotesListProps) {
   const [notes, setNotes] = useState<NoteWithUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -40,7 +41,7 @@ export default function NotesList({ className = '' }: NotesListProps) {
 
   useEffect(() => {
     fetchNotes()
-  }, [])
+  }, [refresh])
 
   if (isLoading) {
     return (
