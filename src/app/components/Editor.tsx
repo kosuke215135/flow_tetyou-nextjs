@@ -17,13 +17,28 @@ import { NoteFormData } from "@/types/note";
 
 const lowlight = createLowlight(all);
 
-export default function NoteEditor() {
+interface Note {
+  id: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface NoteEditorProps {
+  onNoteRefresh?: () => void;
+}
+
+export default function NoteEditor({ onNoteRefresh }: NoteEditorProps) {
     const { setValue, handleSubmit } = useForm<NoteFormData>();
     
     const onSubmit = async (data: NoteFormData) => {
       const response = await createNote(data);
       if (response.success) {
         editor?.commands.clearContent();
+        // 記録成功後にノート一覧をリフレッシュ
+        if (onNoteRefresh) {
+          onNoteRefresh();
+        }
       }
     };
 
