@@ -1,28 +1,22 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
+import { auth } from '@/lib/auth'
 import { NoteFormData } from '@/types/note'
 import { revalidatePath } from 'next/cache'
 
 export async function createNote(data: NoteFormData) {
   try {
-    // テスト用ユーザーの作成または取得
-    const tempUserId = 'temp-user-id'
+    // セッション情報を取得
+    const session = await auth()
     
-    // ユーザーが存在しない場合は作成
-    await prisma.user.upsert({
-      where: { id: tempUserId },
-      update: {},
-      create: {
-        id: tempUserId,
-        email: 'temp@example.com',
-        name: 'テストユーザー',
-      }
-    })
+    if (!session?.user?.id) {
+      return { success: false, error: 'Authentication required' }
+    }
 
     const note = await prisma.note.create({
       data: {
-        userId: tempUserId,
+        userId: session.user.id,
         text: JSON.stringify(data.content),
       },
     })
@@ -37,7 +31,17 @@ export async function createNote(data: NoteFormData) {
 
 export async function getNotes() {
   try {
+    // セッション情報を取得
+    const session = await auth()
+    
+    if (!session?.user?.id) {
+      return { success: false, error: 'Authentication required' }
+    }
+
     const notes = await prisma.note.findMany({
+      where: {
+        userId: session.user.id
+      },
       include: {
         user: {
           select: {

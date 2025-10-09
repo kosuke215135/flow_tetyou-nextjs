@@ -1,11 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import NoteEditor from '@/app/components/Editor';
 import NotesList from '@/app/components/NotesList';
 
 export default function NotesPage() {
+  const { status } = useSession();
   const [refresh, setRefreshKey] = useState<number>(0);
+
+  // 認証状態の変更を監視し、サインアウト時にノートデータをクリア
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      localStorage.removeItem('notes');
+      setRefreshKey(prev => prev + 1); // リストを強制リフレッシュ
+    }
+  }, [status]);
 
   // ノートリフレッシュ用のコールバック関数
   const handleNoteRefresh = (): void => {

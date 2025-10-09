@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { getNotes } from '@/lib/actions'
 import NoteCard from './NoteCard'
 import { NoteModel } from '@/types/note'
+
 
 interface NotesListProps {
   refresh: number
@@ -17,13 +19,12 @@ interface NoteWithUser extends NoteModel {
 }
 
 export default function NotesList({ refresh, className = '' }: NotesListProps) {
+  const { data: session, status } = useSession()
   const [notes, setNotes] = useState<NoteWithUser[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchNotes = async () => {
     try {
-      setIsLoading(true)
       const response = await getNotes()
       
       if (response.success && response.data) {
@@ -34,19 +35,32 @@ export default function NotesList({ refresh, className = '' }: NotesListProps) {
       }
     } catch (err) {
       setError('An unexpected error occurred')
-    } finally {
-      setIsLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchNotes()
-  }, [refresh])
+    if (status === 'authenticated' && session?.user?.id) {
+      fetchNotes()
+    } else if (status === 'unauthenticated') {
+      setNotes([])
+      setError(null)
+    }
+    console.log(session, status)
+  }, [refresh, status, session?.user?.id])
 
-  if (isLoading) {
+  if (status === 'loading') {
     return (
       <div className={`flex justify-center items-center py-8 ${className}`}>
         <div className="text-gray-500">読み込み中...</div>
+      </div>
+    )
+  }
+
+  if (status === 'unauthenticated') {
+    return (
+      <div className={`text-center py-8 ${className}`}>
+        <div className="text-gray-500 mb-2">ノートを表示するにはサインインが必要です</div>
+        <div className="text-sm text-gray-400">右上のサインインボタンからログインしてください</div>
       </div>
     )
   }

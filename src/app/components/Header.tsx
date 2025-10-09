@@ -1,3 +1,5 @@
+import AuthButton from './auth/AuthButton';
+
 /**
  * アプリ共通ヘッダー
  */
@@ -9,10 +11,18 @@ interface HeaderProps {
 
 export function Header({ title }: HeaderProps) {
   return (
-    <header className="w-full bg-gray-900 text-white py-4 px-6 shadow">
-      <div className="container mx-auto flex items-center justify-between">
-        <h1 className="text-xl font-bold">{title ?? APP_NAME}</h1>
-        {/* ここにナビゲーションやアイコンなど追加可能 */}
+    <header className="bg-gray-800 shadow-sm border-b border-gray-700">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center">
+            <h1 className="text-xl font-semibold text-white">
+              {title ?? APP_NAME}
+            </h1>
+          </div>
+          <div className="flex items-center">
+            <AuthButton />
+          </div>
+        </div>
       </div>
     </header>
   );

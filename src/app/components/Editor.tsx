@@ -25,7 +25,7 @@ interface Note {
 }
 
 interface NoteEditorProps {
-  onNoteRefresh?: () => void;
+  onNoteRefresh: () => void;
 }
 
 export default function NoteEditor({ onNoteRefresh }: NoteEditorProps) {
@@ -36,9 +36,7 @@ export default function NoteEditor({ onNoteRefresh }: NoteEditorProps) {
       if (response.success) {
         editor?.commands.clearContent();
         // 記録成功後にノート一覧をリフレッシュ
-        if (onNoteRefresh) {
-          onNoteRefresh();
-        }
+        onNoteRefresh();
       }
     };
 
