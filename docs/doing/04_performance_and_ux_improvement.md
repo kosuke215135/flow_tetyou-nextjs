@@ -1,0 +1,19 @@
+# 目的
+ノート保存時の体感速度を向上させ、よりスムーズなUXを提供するために、ゆるふわ度測定APIの高速化とスケルトンUIの導入を行います。
+
+# ゴール
+- ゆるふわ度を測定するモデルを高速なものに変更し、APIの応答時間を短縮する。
+- ノート保存後、即座にスケルトンUIが一覧に表示され、データの読み込み完了後に実際のノート内容に切り替わる。
+
+# 編集するファイル名
+- `src/lib/yurufuwa.ts`
+- `src/app/components/NotesPage.tsx`
+- `src/app/components/NoteCard.tsx`
+- `src/lib/actions.ts`
+
+# タスク
+- [x] `src/lib/yurufuwa.ts` で使用するモデルを、より高速なモデルに変更する。
+- [x] `src/app/components/NoteCard.tsx` に、スケルトン表示用のUIを追加する。
+- [x] `src/app/components/NotesPage.tsx` のノート作成処理を修正し、保存ボタンを押した直後に楽観的更新（optimistic update）でスケルトンUIをリストの先頭に表示させる。
+- [x] ノート作成処理完了後、リストを再検証して実際のデータに差し替える。
+- [ ] ユーザーにチェックをもらう(必須)

@@ -10,34 +10,21 @@ import { all, createLowlight } from "lowlight";
 import Placeholder from "@tiptap/extension-placeholder";
 import { RichEditorToolbar } from "@/app/components/RichEditorToolbar";
 import { useForm } from "react-hook-form";
-import { createNote } from '@/lib/actions';
 import { Editor } from "@tiptap/core";
 import { NoteFormData } from "@/types/note";
 
-
 const lowlight = createLowlight(all);
 
-interface Note {
-  id: number;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface NoteEditorProps {
-  onNoteRefresh: () => void;
+  onNoteSubmit: (data: NoteFormData) => Promise<void>;
 }
 
-export default function NoteEditor({ onNoteRefresh }: NoteEditorProps) {
-    const { setValue, handleSubmit } = useForm<NoteFormData>();
+export default function NoteEditor({ onNoteSubmit }: NoteEditorProps) {
+    const { setValue, handleSubmit, formState: { isSubmitting } } = useForm<NoteFormData>();
     
     const onSubmit = async (data: NoteFormData) => {
-      const response = await createNote(data);
-      if (response.success) {
-        editor?.commands.clearContent();
-        // 記録成功後にノート一覧をリフレッシュ
-        onNoteRefresh();
-      }
+      await onNoteSubmit(data);
+      editor?.commands.clearContent();
     };
 
     const editor: Editor | null = useEditor({
@@ -57,7 +44,6 @@ export default function NoteEditor({ onNoteRefresh }: NoteEditorProps) {
       },
       immediatelyRender: false,
       onUpdate: ({ editor }) => {
-        // JSONに変換
         const json = editor.getJSON();
         setValue("content", json);
       },
@@ -75,9 +61,10 @@ export default function NoteEditor({ onNoteRefresh }: NoteEditorProps) {
           <RichEditorToolbar editor={editor} />
           <button
             type="submit"
-            className="submit-button bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="submit-button bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
+            disabled={isSubmitting}
           >
-            記録
+            {isSubmitting ? '保存中...' : '記録'}
           </button>
         </div>
       </div>

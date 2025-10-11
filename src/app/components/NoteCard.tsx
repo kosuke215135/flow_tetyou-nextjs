@@ -1,24 +1,25 @@
-import { EditorContent, useEditor } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import TaskItem from '@tiptap/extension-task-item'
-import TaskList from '@tiptap/extension-task-list'
-import Link from '@tiptap/extension-link'
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
-import { all, createLowlight } from 'lowlight'
-import { NoteModel } from '@/types/note'
+import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import TaskItem from '@tiptap/extension-task-item';
+import TaskList from '@tiptap/extension-task-list';
+import Link from '@tiptap/extension-link';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { all, createLowlight } from 'lowlight';
+import { NoteModel } from '@/types/note';
+import { Skeleton } from "@/app/components/ui/skeleton";
 
-const lowlight = createLowlight(all)
+const lowlight = createLowlight(all);
 
 interface NoteCardProps {
   note: NoteModel & {
     user: {
-      name: string | null
-    }
-  }
+      name: string | null;
+    };
+  };
 }
 
 export default function NoteCard({ note }: NoteCardProps) {
-  const parsedContent = JSON.parse(note.text)
+  const parsedContent = JSON.parse(note.text);
   
   const editor = useEditor({
     extensions: [
@@ -36,10 +37,10 @@ export default function NoteCard({ note }: NoteCardProps) {
       },
     },
     immediatelyRender: false,
-  })
+  });
 
   if (!editor) {
-    return null
+    return null;
   }
 
   const score = note.yurufuwaScore;
@@ -76,5 +77,32 @@ export default function NoteCard({ note }: NoteCardProps) {
         </div>
       )}
     </div>
-  )
+  );
+}
+
+export function NoteCardSkeleton() {
+  return (
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 mb-4">
+      <div className="mb-3">
+        <div className="flex justify-between items-start">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-3 w-20" />
+        </div>
+      </div>
+      
+      <div className="note-content space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+
+      <div className="mt-4">
+        <div className="flex justify-between items-center mb-1">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-3 w-8" />
+        </div>
+        <Skeleton className="h-2 w-full" />
+      </div>
+    </div>
+  );
 }
