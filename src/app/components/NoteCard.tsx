@@ -5,6 +5,7 @@ import TaskList from '@tiptap/extension-task-list';
 import Link from '@tiptap/extension-link';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { all, createLowlight } from 'lowlight';
+import { FaStar, FaRegStar } from 'react-icons/fa';
 import { NoteModel } from '@/types/note';
 import { Skeleton } from "@/app/components/ui/skeleton";
 
@@ -64,26 +65,25 @@ export default function NoteCard({ note }: NoteCardProps) {
 
       <div className="mt-4">
         {score !== null ? (
-          <>
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-xs font-semibold text-gray-600">ゆるふわ度</span>
-              <span className="text-xs font-bold text-blue-600">{(score * 100).toFixed(0)}%</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-gray-600">ゆるふわ度:</span>
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3, 4, 5].map((starIndex) => (
+                <div key={starIndex}>
+                  {starIndex <= score ? (
+                    <FaStar className="text-yellow-400 text-sm" />
+                  ) : (
+                    <FaRegStar className="text-gray-300 text-sm" />
+                  )}
+                </div>
+              ))}
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-500 h-2 rounded-full"
-                style={{ width: `${score * 100}%` }}
-              ></div>
-            </div>
-          </>
+          </div>
         ) : (
-          <>
-            <div className="flex justify-between items-center mb-1">
-              <Skeleton className="h-3 w-16" />
-              <Skeleton className="h-3 w-8" />
-            </div>
-            <Skeleton className="h-2 w-full" />
-          </>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-3 w-20" />
+          </div>
         )}
       </div>
     </div>

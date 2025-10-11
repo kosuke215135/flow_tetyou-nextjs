@@ -11,11 +11,11 @@ const genAI = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY!});
 // calculateYurufuwaScore関数をここに移動
 async function calculateYurufuwaScore(jsonContent: string): Promise<number> {
   if (!jsonContent) {
-    return 0;
+    return 1;
   }
   if (!process.env.GEMINI_API_KEY) {
     console.error("GEMINI_API_KEY is not set.");
-    return 0;
+    return 1;
   }
 
   let content: JSONContent;
@@ -28,32 +28,32 @@ async function calculateYurufuwaScore(jsonContent: string): Promise<number> {
   const text = extractTextFromContent(content).trim();
 
   if (text.length < 10) {
-    return 0.1;
+    return 1;
   }
 
   try {
-    const prompt = `以下の文章は、具体的な行動計画に近いですか？抽象的なアイデアに近いですか？抽象度を0.0から1.0の数値で評価してください。レスポンスは数値のみでお願いします。\n\n文章: ${text}`;
-    
+    const prompt = `以下の文章は、具体的な行動計画に近いですか？抽象的なアイデアに近いですか？抽象度を1から5の整数で評価してください（1: 具体的、5: 抽象的）。レスポンスは整数のみでお願いします。\n\n文章: ${text}`;
+
     const response = await genAI.models.generateContent({ model: "gemini-2.5-flash", contents: [prompt] });
     const responseText = response.text;
-    
+
     if (responseText) {
-      const numberMatch = responseText.match(/[\d.]+/);
+      const numberMatch = responseText.match(/\d+/);
       if (numberMatch) {
-        const score = parseFloat(numberMatch[0]);
+        const score = parseInt(numberMatch[0], 10);
         if (!isNaN(score)) {
-          const finalScore = Math.max(0, Math.min(1, score));
-          return parseFloat(finalScore.toFixed(2));
+          const finalScore = Math.max(1, Math.min(5, score));
+          return finalScore;
         }
       }
     }
-    
+
     console.error("Failed to parse score from Gemini response:", responseText);
-    return 0;
+    return 1;
 
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    return 0;
+    return 1;
   }
 }
 
@@ -80,7 +80,7 @@ async function updateScore(noteId: string) {
         where: { id: note.userId },
         data: {
           yurufuwaMeter: {
-            increment: score,
+            increment: score * 0.1,
           },
         },
       }),
