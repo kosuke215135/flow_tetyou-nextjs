@@ -62,20 +62,30 @@ export default function NoteCard({ note }: NoteCardProps) {
         <EditorContent editor={editor} />
       </div>
 
-      {score !== null && (
-        <div className="mt-4">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs font-semibold text-gray-600">ゆるふわ度</span>
-            <span className="text-xs font-bold text-blue-600">{(score * 100).toFixed(0)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-blue-500 h-2 rounded-full"
-              style={{ width: `${score * 100}%` }}
-            ></div>
-          </div>
-        </div>
-      )}
+      <div className="mt-4">
+        {score !== null ? (
+          <>
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs font-semibold text-gray-600">ゆるふわ度</span>
+              <span className="text-xs font-bold text-blue-600">{(score * 100).toFixed(0)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-blue-500 h-2 rounded-full"
+                style={{ width: `${score * 100}%` }}
+              ></div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex justify-between items-center mb-1">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-3 w-8" />
+            </div>
+            <Skeleton className="h-2 w-full" />
+          </>
+        )}
+      </div>
     </div>
   );
 }
