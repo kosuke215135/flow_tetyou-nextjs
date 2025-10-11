@@ -39,13 +39,16 @@ export default function NoteEditor({ onNoteSubmit }: NoteEditorProps) {
       content: "",
       editorProps: {
         attributes: {
-          class: "textbox",
+          class: "prose max-w-none focus:outline-none min-h-[120px] p-4",
         },
       },
       immediatelyRender: false,
       onUpdate: ({ editor }) => {
         const json = editor.getJSON();
         setValue("content", json);
+      },
+      onSelectionUpdate: () => {
+        // Force re-render of toolbar when selection changes
       },
     });
 

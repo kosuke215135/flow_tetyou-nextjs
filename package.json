@@ -13,6 +13,7 @@
     "@google/genai": "^1.23.0",
     "@prisma/client": "^6.16.3",
     "@radix-ui/react-progress": "^1.1.7",
+    "@tailwindcss/typography": "^0.5.19",
     "@tiptap/core": "^3.6.5",
     "@tiptap/extension-code-block-lowlight": "^3.6.5",
     "@tiptap/extension-link": "^3.6.5",

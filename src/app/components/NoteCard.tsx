@@ -34,7 +34,7 @@ export default function NoteCard({ note }: NoteCardProps) {
     editable: false,
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none',
+        class: 'prose max-w-none focus:outline-none',
       },
     },
     immediatelyRender: false,

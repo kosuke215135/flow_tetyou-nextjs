@@ -1,7 +1,7 @@
 'use client';
 
 import { Editor } from "@tiptap/react";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AiOutlineLink } from "react-icons/ai";
 import {
   MdCode,
@@ -17,6 +17,21 @@ import {
 } from "react-icons/md";
 
 export function RichEditorToolbar({ editor }: { editor: Editor }) {
+  const [, setUpdateCounter] = useState(0);
+
+  useEffect(() => {
+    const updateHandler = () => {
+      setUpdateCounter(prev => prev + 1);
+    };
+
+    editor.on('update', updateHandler);
+    editor.on('selectionUpdate', updateHandler);
+
+    return () => {
+      editor.off('update', updateHandler);
+      editor.off('selectionUpdate', updateHandler);
+    };
+  }, [editor]);
   const setLink = useCallback(() => {
     const previousUrl = editor.getAttributes("link").href;
     const url = window.prompt("URL", previousUrl);
@@ -39,78 +54,122 @@ export function RichEditorToolbar({ editor }: { editor: Editor }) {
   }
 
   return (
-    <div className="toolbar">
+    <div className="flex flex-wrap gap-1">
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        className={
-          !editor.isActive("heading", { level: 1 }) ? "not-use-opacity" : ""
-        }
+        className={`p-2 rounded transition-colors ${
+          editor.isActive("heading", { level: 1 })
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
       >
-        <MdTitle />
+        <MdTitle className="w-6 h-6" />
       </button>
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleBold().run()}
-        className={!editor.isActive("bold") ? "not-use-opacity" : ""}
+        className={`p-2 rounded transition-colors ${
+          editor.isActive("bold")
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
       >
-        <MdFormatBold />
+        <MdFormatBold className="w-6 h-6" />
       </button>
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleStrike().run()}
-        className={!editor.isActive("strike") ? "not-use-opacity" : ""}
+        className={`p-2 rounded transition-colors ${
+          editor.isActive("strike")
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
       >
-        <MdFormatStrikethrough />
+        <MdFormatStrikethrough className="w-6 h-6" />
       </button>
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleTaskList().run()}
-        className={!editor.isActive("taskList") ? "not-use-opacity" : ""}
+        className={`p-2 rounded transition-colors ${
+          editor.isActive("taskList")
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
       >
-        <MdTaskAlt />
+        <MdTaskAlt className="w-6 h-6" />
       </button>
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-        className={!editor.isActive("codeBlock") ? "not-use-opacity" : ""}
+        className={`p-2 rounded transition-colors ${
+          editor.isActive("codeBlock")
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
       >
-        <MdCode />
+        <MdCode className="w-6 h-6" />
       </button>
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={!editor.isActive("bulletList") ? "not-use-opacity" : ""}
+        className={`p-2 rounded transition-colors ${
+          editor.isActive("bulletList")
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
       >
-        <MdFormatListBulleted />
+        <MdFormatListBulleted className="w-6 h-6" />
       </button>
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={!editor.isActive("orderedList") ? "not-use-opacity" : ""}
+        className={`p-2 rounded transition-colors ${
+          editor.isActive("orderedList")
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
       >
-        <MdFormatListNumbered />
+        <MdFormatListNumbered className="w-6 h-6" />
       </button>
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        className={!editor.isActive("blockquote") ? "not-use-opacity" : ""}
+        className={`p-2 rounded transition-colors ${
+          editor.isActive("blockquote")
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
       >
-        <MdFormatQuote />
+        <MdFormatQuote className="w-6 h-6" />
       </button>
       <button
         type="button"
         onClick={setLink}
-        className={!editor.isActive("link") ? "not-use-opacity" : ""}
+        className={`p-2 rounded transition-colors ${
+          editor.isActive("link")
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }`}
       >
-        <AiOutlineLink />
+        <AiOutlineLink className="w-6 h-6" />
       </button>
 
-      <button onClick={() => editor.chain().focus().undo().run()} type="button">
-        <MdUndo />
+      <div className="w-px h-8 bg-gray-300 self-center mx-1"></div>
+
+      <button
+        onClick={() => editor.chain().focus().undo().run()}
+        type="button"
+        className="p-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+      >
+        <MdUndo className="w-6 h-6" />
       </button>
-      <button onClick={() => editor.chain().focus().redo().run()} type="button">
-        <MdRedo />
+      <button
+        onClick={() => editor.chain().focus().redo().run()}
+        type="button"
+        className="p-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+      >
+        <MdRedo className="w-6 h-6" />
       </button>
     </div>
   );

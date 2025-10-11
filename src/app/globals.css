@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   --background: #ffffff;
@@ -59,5 +60,97 @@ body {
     var(--shimmer-bg) 100%
   );
   animation: shimmer 2s infinite;
+}
+
+/* Prose 全体のスタイル調整 */
+.prose {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.prose p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+  margin-top: 0.75em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+.prose ul, .prose ol {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose li {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+/* TipTap Task List スタイル */
+.prose ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose ul[data-type="taskList"] li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.prose ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.prose ul[data-type="taskList"] li > div {
+  flex-grow: 1;
+  line-height: 1.6;
+}
+
+.prose ul[data-type="taskList"] input[type="checkbox"] {
+  cursor: pointer;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* TipTap Code Block スタイル補完 */
+.prose pre {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* TipTap Link スタイル */
+.prose a {
+  color: #3b82f6;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.prose a:hover {
+  color: #2563eb;
 }
 
