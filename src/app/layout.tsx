@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "./components/Header";
-import SessionProviderWrapper from "@/components/providers/session-provider"; // インポート
-import { auth } from "@/lib/auth"; // インポート
+import SessionProviderWrapper from "@/components/providers/session-provider";
+import { auth } from "@/lib/auth";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +22,7 @@ export default async function RootLayout({
   return (
     <html lang="ja">
       <body className={inter.className}>
-        <SessionProviderWrapper session={session}> {/* SessionProviderWrapperでラップ */}
+        <SessionProviderWrapper session={session}>
           <Header />
           {children}
         </SessionProviderWrapper>

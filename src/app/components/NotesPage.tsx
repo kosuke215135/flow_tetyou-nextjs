@@ -48,16 +48,28 @@ export default function NotesPage() {
       const response = await createNote(data);
 
       if (!response.success || !response.note) {
+        console.error('Failed to create note:', response.error);
         await mutate(notes, false);
-      } else {
-        fetch('/api/update-score', {
+        return;
+      }
+
+      try {
+        const scoreResponse = await fetch('/api/update-score', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ noteId: response.note.id }),
         });
+
+        if (!scoreResponse.ok) {
+          console.error('Failed to update score:', await scoreResponse.text());
+        }
+      } catch (scoreError) {
+        console.error('Error updating score:', scoreError);
+      } finally {
         await mutate();
       }
     } catch (err) {
+      console.error('Error in handleNoteSubmit:', err);
       await mutate(notes, false);
     }
   };

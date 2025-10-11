@@ -1,4 +1,4 @@
-'use client'; // クライアントコンポーネント化
+'use client';
 
 import useSWR from 'swr';
 import AuthButton from './auth/AuthButton';

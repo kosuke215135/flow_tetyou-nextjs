@@ -103,16 +103,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'noteId is required' }, { status: 400 });
     }
 
-    updateScore(noteId);
+    await updateScore(noteId);
 
     return NextResponse.json(
-      { message: 'Score update process started.' },
-      { status: 202 }
+      { message: 'Score updated successfully.' },
+      { status: 200 }
     );
   } catch (error) {
+    console.error('Error in POST /api/update-score:', error);
     return NextResponse.json(
-      { error: 'Invalid request' },
-      { status: 400 }
+      { error: 'Failed to update score' },
+      { status: 500 }
     );
   }
 }
