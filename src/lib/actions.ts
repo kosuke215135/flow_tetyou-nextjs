@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { NoteFormData } from '@/types/note'
 import { revalidatePath } from 'next/cache'
+import { calculateYurufuwaScore } from '@/lib/yurufuwa'
 
 export async function createNote(data: NoteFormData) {
   try {
@@ -14,10 +15,14 @@ export async function createNote(data: NoteFormData) {
       return { success: false, error: 'Authentication required' }
     }
 
+    const jsonContent = JSON.stringify(data.content);
+    const yurufuwaScore = await calculateYurufuwaScore(jsonContent); // スコアを計算
+
     const note = await prisma.note.create({
       data: {
         userId: session.user.id,
-        text: JSON.stringify(data.content),
+        text: jsonContent,
+        yurufuwaScore: yurufuwaScore, // スコアを保存
       },
     })
 

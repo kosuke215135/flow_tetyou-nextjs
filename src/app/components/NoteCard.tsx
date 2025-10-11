@@ -42,6 +42,8 @@ export default function NoteCard({ note }: NoteCardProps) {
     return null
   }
 
+  const score = note.yurufuwaScore;
+
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 mb-4">
       <div className="mb-3">
@@ -58,6 +60,21 @@ export default function NoteCard({ note }: NoteCardProps) {
       <div className="note-content">
         <EditorContent editor={editor} />
       </div>
+
+      {score !== null && (
+        <div className="mt-4">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs font-semibold text-gray-600">ゆるふわ度</span>
+            <span className="text-xs font-bold text-blue-600">{(score * 100).toFixed(0)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-500 h-2 rounded-full"
+              style={{ width: `${score * 100}%` }}
+            ></div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

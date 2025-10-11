@@ -10,6 +10,7 @@ interface NoteModel {
   id: string
   userId: string
   text: string
+  yurufuwaScore: number | null
   createdAt: Date
   updatedAt: Date
 }
