@@ -16,6 +16,7 @@
 - `src/app/components/YurufuwaMeter.tsx` (新規作成)
 - `src/app/page.tsx`
 - `src/app/components/DoitKunArea.tsx` (新規作成)
+- `src/app/api/user/route.ts` (新規作成)
 
 # タスク
 - [x] `prisma/schema.prisma` の `User` モデルに `yurufuwaMeter` (Float, default 0) を、`Note` モデルに `actionPlanGenerated` (Boolean, default false) を追加する。
@@ -34,3 +35,11 @@
     - [x] 対象となったノートの `actionPlanGenerated` フラグを `true` に更新する。
 - [x] `DoitKunArea.tsx` から `generateSmallStepActionPlan` を呼び出し、取得したアクションプランを表示する。
 - [ ] ユーザーにチェックをもらう(必須)
+
+# 修正タスク
+- [x] ヘッダーのゆるふわメーターの配色を変更し、視認性を向上させる。
+- [x] **設計変更:** ユーザー情報（ゆるふわメーター）をSWRでグローバルに状態管理し、UIが自動更新されるようにする。
+    - [x] ユーザー情報を返す`/api/user`エンドポイントを新規作成する。
+    - [x] `Header`コンポーネントをクライアントコンポーネント化し、SWRでメーターの値を取得・表示するように修正する。
+    - [x] `DoitKunArea`コンポーネントが、SWRで取得した最新のメーターの値を参照するように修正する。
+- [ ] アクションプランの表示形式を、カードを重ねて表示するUIに変更する。

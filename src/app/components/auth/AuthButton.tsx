@@ -1,26 +1,18 @@
-import { auth, signOut } from '@/lib/auth'
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
+'use client';
 
-// import { signOut } from 'next-auth/react';
-// import { useRouter } from 'next/router'
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { signOutAndRevalidate } from '@/lib/actions';
 
 interface UserInfo {
-  name?: string | null
-  email?: string | null
-  image?: string | null
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
 }
 
 function SignOutButton() {
-  async function handleSignOut() {
-    'use server'
-    await signOut({ redirectTo: "/auth/signin" })
-    revalidatePath('/')
-  }
-
   return (
-    <form action={handleSignOut}>
+    <form action={signOutAndRevalidate}>
       <button
         type="submit"
         className="text-sm text-white hover:text-gray-300 font-medium transition-colors duration-200"
@@ -28,7 +20,7 @@ function SignOutButton() {
         サインアウト
       </button>
     </form>
-  )
+  );
 }
 
 function UserProfile({ user }: { user: UserInfo }) {
@@ -53,7 +45,7 @@ function UserProfile({ user }: { user: UserInfo }) {
       </div>
       <SignOutButton />
     </div>
-  )
+  );
 }
 
 function SignInLink() {
@@ -64,15 +56,19 @@ function SignInLink() {
     >
       サインイン
     </Link>
-  )
+  );
 }
 
-export default async function AuthButton() {
-  const session = await auth()
-  
+export default function AuthButton() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return <div className="w-8 h-8 bg-gray-700 rounded-full animate-pulse" />;
+  }
+
   if (session?.user) {
-    return <UserProfile user={session.user} />
+    return <UserProfile user={session.user} />;
   }
   
-  return <SignInLink />
+  return <SignInLink />;
 }

@@ -1,7 +1,11 @@
-import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+'use client'; // クライアントコンポーネント化
+
+import useSWR from 'swr';
 import AuthButton from './auth/AuthButton';
 import YurufuwaMeter from './YurufuwaMeter';
+
+// SWRのfetcher関数
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const APP_NAME = "Flow手帳";
 
@@ -9,19 +13,13 @@ interface HeaderProps {
   title?: string;
 }
 
-export async function Header({ title }: HeaderProps) {
-  const session = await auth();
-  let userMeter = 0;
+export function Header({ title }: HeaderProps) {
+  // SWRでユーザーデータを取得
+  const { data: user, error } = useSWR('/api/user', fetcher, {
+    refreshInterval: 5000, // 5秒ごとにポーリング
+  });
 
-  if (session?.user?.id) {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { yurufuwaMeter: true },
-    });
-    if (user) {
-      userMeter = user.yurufuwaMeter;
-    }
-  }
+  const userMeter = user?.yurufuwaMeter ?? 0;
 
   return (
     <header className="bg-gray-800 shadow-sm border-b border-gray-700">
@@ -36,7 +34,8 @@ export async function Header({ title }: HeaderProps) {
 
           {/* 中央 */}
           <div className="flex-1 flex justify-center">
-            {session?.user && <YurufuwaMeter currentValue={userMeter} />}
+            {/* userが存在する場合のみメーターを表示 */}
+            {user && <YurufuwaMeter currentValue={userMeter} />}
           </div>
 
           {/* 右側 */}

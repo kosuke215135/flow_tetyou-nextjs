@@ -2,14 +2,16 @@
 
 import { SessionProvider } from 'next-auth/react'
 import { ReactNode } from 'react'
+import { Session } from 'next-auth' // Session型をインポート
 
 interface SessionProviderWrapperProps {
-  children: ReactNode
+  children: ReactNode;
+  session: Session | null; // sessionプロパティを追加
 }
 
-export default function SessionProviderWrapper({ children }: SessionProviderWrapperProps) {
+export default function SessionProviderWrapper({ children, session }: SessionProviderWrapperProps) {
   return (
-    <SessionProvider>
+    <SessionProvider session={session}> {/* sessionプロパティを渡す */}
       {children}
     </SessionProvider>
   )
