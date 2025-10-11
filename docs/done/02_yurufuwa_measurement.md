@@ -19,4 +19,4 @@
 - [x] `src/lib/actions.ts` の `createNote` 関数を修正し、`calculateYurufuwaScore` を呼び出して結果を `yurufuwaScore` フィールドに保存するようにする。
 - [x] `src/lib/actions.ts` の `getNotes` 関数を修正し、取得するデータに `yurufuwaScore` を含める。
 - [x] `src/app/components/NoteCard.tsx` にプログレスバーなどを追加し、`yurufuwaScore` を可視化する。
-- [] ユーザーにチェックをもらう(必須)
+- [x] ユーザーにチェックをもらう(必須)
