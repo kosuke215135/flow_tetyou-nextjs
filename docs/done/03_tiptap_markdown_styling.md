@@ -28,19 +28,66 @@ TipTapエディタでマークダウン記法（見出し、太字、リスト�
 - `src/app/components/NoteCard.tsx` - 表示部分にTipTapのHTML出力を適切にスタイリング
 
 # 新たに導入するライブラリ
-なし（TipTapとTailwind CSSで対応可能）
+- `@tailwindcss/typography` (v0.5.19) - Tailwind CSS Typography プラグイン
 
 # タスク
-- [ ] TipTapの推奨スタイリング方法を調査
-- [ ] `globals.css`にTipTapエディタ用のスタイルを追加（`.ProseMirror`クラス配下）
-  - [ ] 見出しのスタイル
-  - [ ] 太字・斜体のスタイル
-  - [ ] リストのスタイル
-  - [ ] タスクリストのスタイル
-  - [ ] コードブロックのスタイル確認・調整
-  - [ ] リンクのスタイル
-  - [ ] 引用のスタイル
-- [ ] `Editor.tsx`にスタイル適用のためのクラス名を追加
-- [ ] `NoteCard.tsx`でノート表示時に同じスタイルが適用されるように修正
-- [ ] 各種マークダウン記法を実際に入力してスタイルを確認
-- [ ] ユーザーにチェックをもらう(必須)
+- [x] TipTapの推奨スタイリング方法を調査
+  - Tailwind CSS v4 で `@tailwindcss/typography` が使用可能であることを確認
+  - `@plugin` ディレクティブで統合する方法を採用
+- [x] `@tailwindcss/typography` をインストール
+- [x] `globals.css`にプラグインを追加し、prose スタイルをカスタマイズ
+  - [x] 文字サイズ: 1rem、行間: 1.6 に設定
+  - [x] 段落・見出しの間隔を調整（0.5em〜0.75em）
+  - [x] タスクリストのスタイル（チェックボックスとテキストの位置を揃える）
+  - [x] コードブロックのスタイル（背景色、パディング、シンタックスハイライト）
+  - [x] リンクのスタイル（青色、下線、ホバー効果）
+- [x] `Editor.tsx`に`prose`クラスを適用
+  - `prose-sm` から `prose` に変更
+  - `onSelectionUpdate` を追加してツールバーの再レンダリングをトリガー
+- [x] `NoteCard.tsx`のスタイルを確認・調整
+  - `prose-sm` から `prose` に変更
+- [x] `RichEditorToolbar.tsx`のUI/UX改善
+  - アイコンサイズを24px (w-6 h-6) に拡大
+  - ボタンにパディング (p-2) を追加
+  - アクティブ状態を青色背景 (bg-blue-600) で視覚化
+  - useEffect でエディタの update/selectionUpdate イベントをリッスンし、リアルタイム更新を実現
+- [x] 各種マークダウン記法を実際に入力してスタイルを確認
+- [x] ユーザーにチェックをもらう(必須)
+
+---
+
+## 実装結果
+
+### 修正したファイル
+1. **package.json** - `@tailwindcss/typography` (v0.5.19) を追加
+2. **src/app/globals.css**
+   - `@plugin "@tailwindcss/typography"` を追加
+   - `.prose` のフォントサイズ・行間をカスタマイズ
+   - タスクリスト、コードブロック、リンクのスタイルを追加
+3. **src/app/components/Editor.tsx**
+   - `editorProps.attributes.class` に `prose` クラスを適用
+   - `onSelectionUpdate` を追加してツールバーの状態更新をトリガー
+4. **src/app/components/NoteCard.tsx**
+   - `prose-sm` を `prose` に変更
+5. **src/app/components/RichEditorToolbar.tsx**
+   - アイコンサイズを `w-6 h-6` (24px) に拡大
+   - アクティブ状態を `bg-blue-600 text-white` で視覚化
+   - `useEffect` でエディタの `update`/`selectionUpdate` イベントをリッスン
+
+### 技術的なポイント
+- **Tailwind CSS v4 対応**: `@plugin` ディレクティブを使用してプラグインを統合
+- **完全Tailwind化**: カスタムCSSは最小限に抑え、主にTailwindクラスで実装
+- **リアルタイム更新**: useEffect + editor.on() でツールバーのアクティブ状態を即座に反映
+- **アクセシビリティ**: チェックボックスとテキストの垂直位置を `align-items: center` で揃える
+
+### 処理の流れ
+1. ユーザーがエディタでマークダウンを入力 → `prose` クラスによりリアルタイムでスタイリング
+2. ツールバーのボタンをクリック → アクティブ時は青色背景、非アクティブ時はグレー背景
+3. カーソル移動・テキスト選択 → `editor.on('selectionUpdate')` でツールバーが再レンダリング
+4. ノート保存後 → `NoteCard.tsx` の `prose` クラスにより表示時も同じスタイル
+
+### ユーザー体験の改善
+- マークダウンの書式が視覚的に分かりやすくなった
+- ツールバーが大きく、タッチ操作でも使いやすい
+- アクティブなツールが一目で分かる
+- 読みやすいフォントサイズと行間
