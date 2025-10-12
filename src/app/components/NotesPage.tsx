@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import useSWR from 'swr';
 import NoteEditor from '@/app/components/Editor';
 import NotesList from '@/app/components/NotesList';
+import DoitKunArea from '@/app/components/DoitKunArea';
 import { getNotes, createNote } from '@/lib/actions';
 import { NoteFormData, OptimisticNote } from '@/types/note';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
@@ -129,6 +130,9 @@ export default function NotesPage() {
                 新しいノートを作成
               </h1>
               <NoteEditor onNoteSubmit={handleNoteSubmit} />
+            </div>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <DoitKunArea />
             </div>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               {renderContent()}
