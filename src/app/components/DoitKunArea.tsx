@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import { generateSmallStepActionPlan } from '@/lib/actions';
+import { generateSmallStepActionPlan, resetYurufuwaMeter } from '@/lib/actions';
 // import ActionPlanCard from './ActionPlanCard'; // 削除
 
 // SWRのfetcher関数
@@ -20,8 +20,8 @@ export default function DoitKunArea() {
 
   const [isSummoned, setIsSummoned] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  // LocalStorageから初期値を読み込む (型をstring[][]に変更)
-  const [actionPlans, setActionPlans] = useState<string[][]>(() => {
+  // LocalStorageから初期値を読み込む
+  const [actionPlans, setActionPlans] = useState<Array<{ title: string; steps: string[]; comment: string }>>(() => {
     if (typeof window !== 'undefined') { // ブラウザ環境でのみLocalStorageにアクセス
       const savedPlans = localStorage.getItem(LOCAL_STORAGE_KEY);
       return savedPlans ? JSON.parse(savedPlans) : [];
@@ -45,6 +45,10 @@ export default function DoitKunArea() {
         console.log("Threshold reached. Generating plans...");
         setIsLoading(true);
         setError(null);
+
+        // 先にメーターをリセット
+        await resetYurufuwaMeter();
+
         try {
           const response = await generateSmallStepActionPlan();
           console.log("Response from server action:", response);
@@ -74,8 +78,8 @@ export default function DoitKunArea() {
 
   console.log("Rendering DoitKunArea with state:", { isLoading, error, actionPlans, isSummoned });
 
-  // ドゥイットくんの表示条件をisSummonedではなくactionPlansの有無に変更
-  if (!user || actionPlans.length === 0) { // ユーザーがいないか、プランがなければ表示しない
+  // ドゥイットくんの表示条件: ユーザーがいない、またはプランもなくローディング中でもない場合は待機メッセージを表示
+  if (!user || (actionPlans.length === 0 && !isLoading)) {
     return (
       <div>
         <h2 className="text-lg font-bold mb-4">ドゥイットくん</h2>
@@ -90,21 +94,37 @@ export default function DoitKunArea() {
 
   return (
     <div>
-      <h2 className="text-lg font-bold mb-4">ドゥイットくん召喚！</h2>
-      {isLoading && <p className="text-sm">アクションプランを生成中...</p>}
-      {error && <p className="text-sm text-red-500">エラー: {error}</p>}
+      <h2 className="text-lg font-bold mb-4 text-center">ドゥイットくん召喚！</h2>
+      <div className="flex justify-center mb-6">
+        <img
+          src="/doitkun.webp"
+          alt="ドゥイットくん"
+          className="w-40 h-40 rounded-full object-cover border-4 border-blue-400 shadow-lg"
+        />
+      </div>
+      {isLoading && (
+        <div className="flex flex-col items-center gap-3 py-6">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-500"></div>
+          <p className="text-base font-semibold text-blue-600">ドゥイットくんが考え中...</p>
+          <p className="text-sm text-gray-500">小さな一歩を計算してるぞ！</p>
+        </div>
+      )}
+      {error && <p className="text-sm text-red-500 text-center">エラー: {error}</p>}
       {actionPlans.length > 0 && (
         <div className="mt-4 space-y-4"> {/* カード間のスペース */}
-          {actionPlans.map((planGroup, groupIndex) => (
-            <div key={groupIndex} className="bg-white rounded-lg shadow-md p-4">
-              <p className="text-sm font-semibold mb-2">
-                提案 {actionPlans.length - groupIndex}
-              </p>
-              <ul className="list-disc list-inside space-y-2 text-sm text-gray-800">
-                {planGroup.map((plan, planIndex) => (
-                  <li key={planIndex}>{plan}</li>
+          {actionPlans.map((plan, planIndex) => (
+            <div key={planIndex} className="bg-white rounded-lg shadow-md p-4">
+              <h3 className="text-base font-bold mb-3 text-blue-600">
+                {plan.title}
+              </h3>
+              <ul className="list-disc list-inside space-y-2 text-sm text-gray-800 mb-3">
+                {plan.steps.map((step, stepIndex) => (
+                  <li key={stepIndex}>{step}</li>
                 ))}
               </ul>
+              <p className="text-sm text-gray-600 italic border-t pt-2 mt-2">
+                {plan.comment}
+              </p>
             </div>
           ))}
         </div>
