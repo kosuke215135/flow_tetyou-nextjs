@@ -40,9 +40,11 @@ export async function getNotes() {
       return { success: false, error: 'Authentication required' }
     }
 
+    // 親ノート（depth=0）のみを取得し、子ノートを再帰的に含める
     const notes = await prisma.note.findMany({
       where: {
         userId: session.user.id,
+        depth: 0, // 親ノートのみ
       },
       orderBy: {
         createdAt: 'desc',
@@ -51,6 +53,23 @@ export async function getNotes() {
         user: {
           select: {
             name: true,
+          },
+        },
+        children: {
+          include: {
+            children: {
+              include: {
+                children: {
+                  include: {
+                    children: {
+                      include: {
+                        children: true, // depth=5まで
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       },
