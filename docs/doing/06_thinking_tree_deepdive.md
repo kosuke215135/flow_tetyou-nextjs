@@ -68,28 +68,28 @@ model Note {
 # タスク
 
 ## Phase 1: データベース変更
-- [ ] `prisma/schema.prisma`を編集
-  - [ ] `User.yurufuwaMeter`を削除
-  - [ ] `Note.yurufuwaScore`を削除
-  - [ ] `Note.actionPlanGenerated`を削除
-  - [ ] `Note.parentNoteId`を追加
-  - [ ] `Note.depth`を追加
-  - [ ] `Note.question`を追加
-  - [ ] 親子リレーション`NoteTree`を追加
-- [ ] マイグレーションファイル生成（`npx prisma migrate dev`）
-- [ ] Prisma Client再生成（`npx prisma generate`）
+- [x] `prisma/schema.prisma`を編集
+  - [x] `User.yurufuwaMeter`を削除
+  - [x] `Note.yurufuwaScore`を削除
+  - [x] `Note.actionPlanGenerated`を削除
+  - [x] `Note.parentNoteId`を追加
+  - [x] `Note.depth`を追加
+  - [x] `Note.question`を追加
+  - [x] 親子リレーション`NoteTree`を追加
+- [x] マイグレーションファイル生成（`npx prisma migrate dev`）
+- [x] Prisma Client再生成（`npx prisma generate`）
 
 ## Phase 2: 不要な機能の削除
-- [ ] `src/app/api/update-score/route.ts`を削除
-- [ ] `src/lib/actions.ts`から不要な関数を削除
-  - [ ] `resetYurufuwaMeter()`削除
-  - [ ] `generateSmallStepActionPlan()`削除（またはリネーム）
-- [ ] `src/app/components/YurufuwaMeter.tsx`の表示を削除または変更
+- [x] `src/app/api/update-score/route.ts`を削除
+- [x] `src/lib/actions.ts`から不要な関数を削除
+  - [x] `resetYurufuwaMeter()`削除
+  - [x] `generateSmallStepActionPlan()`削除
+- [x] `src/app/components/YurufuwaMeter.tsx`を削除
 - [ ] `src/app/components/NotesPage.tsx`からメーター関連UIを削除
 - [ ] `src/app/api/user/route.ts`から`yurufuwaMeter`を削除
 
 ## Phase 3: ドラッグ&ドロップ実装
-- [ ] `@dnd-kit/core`をインストール（`pnpm add @dnd-kit/core @dnd-kit/utilities`）
+- [x] `@dnd-kit/core`をインストール（`pnpm add @dnd-kit/core @dnd-kit/utilities`）
 - [ ] `NotesList.tsx`にドラッグ可能なノートカードを実装
   - [ ] 各ノートに`useDraggable`を適用
   - [ ] ドラッグ中の視覚的フィードバック
