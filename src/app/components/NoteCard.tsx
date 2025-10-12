@@ -8,6 +8,8 @@ import { all, createLowlight } from 'lowlight';
 import { FaStar, FaRegStar } from 'react-icons/fa';
 import { NoteModel } from '@/types/note';
 import { Skeleton } from "@/app/components/ui/skeleton";
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 
 const lowlight = createLowlight(all);
 
@@ -21,7 +23,17 @@ interface NoteCardProps {
 
 export default function NoteCard({ note }: NoteCardProps) {
   const parsedContent = JSON.parse(note.text);
-  
+
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: note.id,
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+    cursor: 'grab',
+  };
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -47,7 +59,13 @@ export default function NoteCard({ note }: NoteCardProps) {
   const score = note.yurufuwaScore;
 
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 mb-4">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className="bg-white rounded-lg shadow-md border border-gray-200 p-4 mb-4 transition-opacity"
+    >
       <div className="mb-3">
         <div className="flex justify-between items-start">
           <div className="text-sm text-gray-500">

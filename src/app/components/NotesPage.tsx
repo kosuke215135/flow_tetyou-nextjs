@@ -6,6 +6,7 @@ import NoteEditor from '@/app/components/Editor';
 import NotesList from '@/app/components/NotesList';
 import { getNotes, createNote } from '@/lib/actions';
 import { NoteFormData, OptimisticNote } from '@/types/note';
+import { DndContext, DragEndEvent } from '@dnd-kit/core';
 
 // SWRのfetcher関数
 const fetcher = () => getNotes().then(res => {
@@ -74,6 +75,15 @@ export default function NotesPage() {
     }
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && over.id === 'doitkun-drop-zone') {
+      console.log('Dropped note:', active.id);
+      // TODO: 深堀りモード起動（次のフェーズで実装）
+    }
+  };
+
   const renderContent = () => {
     if (isLoading) {
       return <div className="text-gray-500">読み込み中...</div>;
@@ -110,20 +120,22 @@ export default function NotesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">
-              新しいノートを作成
-            </h1>
-            <NoteEditor onNoteSubmit={handleNoteSubmit} />
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            {renderContent()}
+    <DndContext onDragEnd={handleDragEnd}>
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto space-y-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-6">
+                新しいノートを作成
+              </h1>
+              <NoteEditor onNoteSubmit={handleNoteSubmit} />
+            </div>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              {renderContent()}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </DndContext>
   );
 }
