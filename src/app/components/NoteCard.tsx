@@ -18,6 +18,8 @@ type NoteWithChildren = NoteModel & {
     name: string | null;
   };
   children?: NoteWithChildren[];
+  question?: string | null;
+  depth?: number;
 };
 
 interface NoteCardProps {
