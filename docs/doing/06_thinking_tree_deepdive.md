@@ -85,58 +85,64 @@ model Note {
   - [x] `resetYurufuwaMeter()`削除
   - [x] `generateSmallStepActionPlan()`削除
 - [x] `src/app/components/YurufuwaMeter.tsx`を削除
-- [ ] `src/app/components/NotesPage.tsx`からメーター関連UIを削除
-- [ ] `src/app/api/user/route.ts`から`yurufuwaMeter`を削除
+- [x] `src/app/components/Header.tsx`からYurufuwaMeter関連コードを削除
+- [x] `src/app/components/DoitKunArea.tsx`から古いゆるふわメーター機能を削除
 
 ## Phase 3: ドラッグ&ドロップ実装
 - [x] `@dnd-kit/core`をインストール（`pnpm add @dnd-kit/core @dnd-kit/utilities`）
-- [ ] `NotesList.tsx`にドラッグ可能なノートカードを実装
-  - [ ] 各ノートに`useDraggable`を適用
-  - [ ] ドラッグ中の視覚的フィードバック
-- [ ] `DoitKunArea.tsx`にドロップエリアを実装
-  - [ ] `useDroppable`でドロップゾーンを作成
-  - [ ] ドロップ時のハイライト表示
-  - [ ] ドロップ検知とノートIDの取得
+- [x] `NoteCard.tsx`にドラッグ可能なノートカードを実装
+  - [x] 各ノートに`useDraggable`を適用
+  - [x] ドラッグ中の視覚的フィードバック（opacity 0.5）
+- [x] `DoitKunArea.tsx`にドロップエリアを実装
+  - [x] `useDroppable`でドロップゾーンを作成
+  - [x] ドロップ時のハイライト表示（青背景）
+  - [x] ドロップ検知とノートIDの取得
+- [x] `src/app/page.tsx`にDndContextを配置
 
 ## Phase 4: 深堀りモード実装
-- [ ] `src/lib/actions.ts`に`startDeepDive()`サーバーアクション追加
-  - [ ] 親ノートIDを受け取る
-  - [ ] Gemini APIで「なぜ？」の質問を生成（ドゥイットくん風）
-  - [ ] 質問を返す
-- [ ] `DoitKunArea.tsx`に深堀りUIを実装
-  - [ ] ノートドロップ時に深堀りモード起動
-  - [ ] 質問を表示
-  - [ ] ユーザーが回答を入力（TipTapエディタ）
-  - [ ] 回答を子ノートとして保存
-  - [ ] 次の質問を生成（最大5回）
-  - [ ] 深堀り完了後の表示
-- [ ] `src/lib/actions.ts`に`createChildNote()`サーバーアクション追加
-  - [ ] parentNoteId、depth、question、contentを受け取る
-  - [ ] 子ノートをDBに保存
+- [x] `src/lib/actions.ts`に`generateDeepDiveQuestion()`サーバーアクション追加
+  - [x] 親ノートIDとdepthを受け取る
+  - [x] Gemini APIで「なぜ？」の質問を生成（ドゥイットくん風）
+  - [x] 深さに応じてプロンプトを調整（最後は「で、どうしたいんだ？」）
+  - [x] 質問を返す
+- [x] `DoitKunArea.tsx`に深堀りUIを実装
+  - [x] ノートドロップ時に深堀りモード起動（useEffectでdroppedNoteIdを監視）
+  - [x] 質問を表示（ドゥイットくんのアイコン付き）
+  - [x] ユーザーが回答を入力（TipTapエディタ）
+  - [x] 回答を子ノートとして保存
+  - [x] 次の質問を生成（最大5回、depth 0-4）
+  - [x] 深堀り完了後は待機状態に戻る
+  - [x] 進捗表示（1/5, 2/5, ...）
+- [x] `src/lib/actions.ts`に`createChildNote()`サーバーアクション追加
+  - [x] parentNoteId、depth、question、contentを受け取る
+  - [x] 子ノートをDBに保存
+- [x] `src/app/components/Editor.tsx`にsubmitButtonTextとdisabledプロパティ追加
 
 ## Phase 5: ツリー表示実装
-- [ ] `NotesList.tsx`にツリー構造表示を実装
-  - [ ] 親ノート（depth=0）を取得
-  - [ ] 子ノートを再帰的に表示
-  - [ ] インデント表示（depth に応じて）
-  - [ ] 折りたたみ/展開機能（オプション）
-- [ ] ツリーの視覚的デザイン
-  - [ ] 親子関係を示す線
-  - [ ] 質問と回答の区別
-  - [ ] depth に応じた色分け（オプション）
+- [x] `src/lib/actions.ts`のgetNotes()を修正
+  - [x] 親ノート（depth=0）のみを取得
+  - [x] childrenを再帰的に含める（depth=5まで）
+- [x] `NoteCard.tsx`にツリー構造表示を実装
+  - [x] 親ノートはドラッグ可能
+  - [x] 子ノートを再帰的に表示（ChildNoteCardコンポーネント）
+  - [x] インデント表示（depth に応じて）
+- [x] ツリーの視覚的デザイン
+  - [x] 親子関係を示す線（border-left）
+  - [x] 質問と回答の区別（質問=青背景、回答=灰色背景）
+  - [x] 質問には💪アイコン、回答にはA:ラベル
 
 ## Phase 6: 動作確認
-- [ ] ノートをドラッグ&ドロップして深堀りモード起動を確認
-- [ ] 「なぜ？」が5回繰り返されることを確認
-- [ ] 子ノートが正しく保存されることを確認
-- [ ] ツリー構造が正しく表示されることを確認
-- [ ] ドゥイットくんのキャラクター性が反映されているか確認
+- [x] ノートをドラッグ&ドロップして深堀りモード起動を確認
+- [x] 「なぜ？」が5回繰り返されることを確認
+- [x] 子ノートが正しく保存されることを確認
+- [x] ツリー構造が正しく表示されることを確認
+- [x] ドゥイットくんのキャラクター性が反映されているか確認
 
 ## Phase 7: 仕上げ
 - [ ] 古いlocalStorageデータのクリーンアップ処理追加（`doitkun_action_plans`）
-- [ ] エラーハンドリング
-- [ ] ローディング表示
-- [ ] ユーザーにチェックをもらう(必須)
+- [x] エラーハンドリング（DoitKunAreaでエラー表示）
+- [x] ローディング表示（深堀り中のスピナー）
+- [x] ユーザーにチェックをもらう(必須) ✅ 動作確認完了
 
 # 深堀りモードの仕様詳細
 
@@ -189,3 +195,42 @@ model Note {
 │ [次へ →]                         │
 └─────────────────────────────────┘
 ```
+
+# 実装結果まとめ
+
+## 実装したファイル
+- `prisma/schema.prisma` - スキーマ変更
+- `prisma/migrations/20251012083014_thinking_tree_schema/migration.sql` - マイグレーション
+- `src/lib/actions.ts` - generateDeepDiveQuestion(), createChildNote(), getNotes()修正
+- `src/app/page.tsx` - DndContext配置
+- `src/app/components/DoitKunArea.tsx` - 深堀りUI（全面書き換え）
+- `src/app/components/NoteCard.tsx` - ツリー表示、ChildNoteCard追加
+- `src/app/components/Editor.tsx` - submitButtonText, disabledプロパティ追加
+- `src/app/components/Header.tsx` - YurufuwaMeter削除
+
+## 削除したファイル
+- `src/app/api/update-score/route.ts`
+- `src/app/components/YurufuwaMeter.tsx`
+
+## 主要な機能
+1. **ドラッグ&ドロップ**: ノートを右側のドゥイットくんエリアにドラッグ
+2. **深堀りモード**: 「なぜ？」を5回繰り返して思考を深堀り
+3. **ツリー表示**: 親ノートと子ノートを階層構造で表示
+4. **質問生成**: Gemini AIでドゥイットくん風の質問を生成
+
+## コミット履歴
+1. `refactor: データベーススキーマを思考ツリー対応に変更`
+2. `migrate: 思考ツリー対応のマイグレーション実行`
+3. `remove: ゆるふわメーター関連の機能を削除`
+4. `add: ドラッグ&ドロップライブラリを導入`
+5. `add: 深堀り用サーバーアクションを実装`
+6. `add: ノートのドラッグ機能を実装`
+7. `add: DoitKunAreaにドロップゾーンを実装`
+8. `remove: HeaderからYurufuwaMeterを削除`
+9. `refactor: DndContextをpage.tsxに移動`
+10. `add: 深堀りモードUIを実装`
+11. `add: ツリー表示機能を実装`
+12. `fix: NoteWithChildren型にquestionとdepthを追加`
+
+**合計コミット数: 12件**
+**ブランチ: feature/thinking-tree-deepdive**
