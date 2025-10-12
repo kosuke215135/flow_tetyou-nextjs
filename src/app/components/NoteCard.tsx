@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TaskItem from '@tiptap/extension-task-item';
@@ -5,7 +6,7 @@ import TaskList from '@tiptap/extension-task-list';
 import Link from '@tiptap/extension-link';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { all, createLowlight } from 'lowlight';
-import { FaStar, FaRegStar } from 'react-icons/fa';
+import { FaStar, FaRegStar, FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import { NoteModel } from '@/types/note';
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { useDraggable } from '@dnd-kit/core';
@@ -28,6 +29,7 @@ interface NoteCardProps {
 
 export default function NoteCard({ note }: NoteCardProps) {
   const parsedContent = JSON.parse(note.text);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: note.id,
@@ -62,15 +64,17 @@ export default function NoteCard({ note }: NoteCardProps) {
   }
 
   const score = note.yurufuwaScore;
+  const hasChildren = note.children && note.children.length > 0;
+  const childrenCount = note.children?.length || 0;
 
   return (
-    <div>
+    <div className="relative" style={{ marginBottom: hasChildren ? '3rem' : '1rem' }}>
       <div
         ref={setNodeRef}
         style={style}
         {...listeners}
         {...attributes}
-        className="bg-white rounded-lg shadow-md border border-gray-200 p-4 mb-4 transition-opacity"
+        className="bg-white rounded-lg shadow-md border border-gray-200 p-4 transition-opacity"
       >
         <div className="mb-3">
           <div className="flex justify-between items-start">
@@ -86,36 +90,37 @@ export default function NoteCard({ note }: NoteCardProps) {
         <div className="note-content">
           <EditorContent editor={editor} />
         </div>
-
-        <div className="mt-4">
-          {score !== null ? (
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-gray-600">ゆるふわ度:</span>
-              <div className="flex items-center gap-0.5">
-                {[1, 2, 3, 4, 5].map((starIndex) => (
-                  <div key={starIndex}>
-                    {starIndex <= score ? (
-                      <FaStar className="text-yellow-400 text-sm" />
-                    ) : (
-                      <FaRegStar className="text-gray-300 text-sm" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-3 w-16" />
-              <Skeleton className="h-3 w-20" />
-            </div>
-          )}
-        </div>
       </div>
 
+      {/* 本のインデックスシール風タブ（下側左、ノートに接して外側） */}
+      {hasChildren && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
+          className="absolute bottom-0 left-4 translate-y-full bg-blue-500 text-white px-3 py-2 rounded-b-md shadow-md hover:bg-blue-600 transition-all"
+          style={{
+            zIndex: 10,
+          }}
+        >
+          <div className="flex items-center gap-1">
+            {isExpanded ? (
+              <FaChevronDown className="text-[10px]" />
+            ) : (
+              <FaChevronRight className="text-[10px]" />
+            )}
+            <span className="text-[11px] font-bold">
+              深堀り{childrenCount}
+            </span>
+          </div>
+        </button>
+      )}
+
       {/* 子ノート（深堀り履歴）を表示 */}
-      {note.children && note.children.length > 0 && (
-        <div className="ml-8 border-l-2 border-blue-200 pl-4">
-          {note.children.map((child) => (
+      {hasChildren && isExpanded && (
+        <div className="ml-8 mt-4 border-l-2 border-blue-200 pl-4">
+          {note.children!.map((child) => (
             <ChildNoteCard key={child.id} note={child} />
           ))}
         </div>
