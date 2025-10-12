@@ -51,7 +51,6 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  yurufuwaMeter Float     @default(0)
   accounts      Account[]
   sessions      Session[]
   notes         Note[]
@@ -73,16 +72,19 @@ model VerificationToken {
 
 // ノート管理用のテーブル
 model Note {
-  id     String @id @default(cuid())
-  userId String
-  text   String
-  yurufuwaScore Float?
-  actionPlanGenerated Boolean @default(false)
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id           String  @id @default(cuid())
+  userId       String
+  text         String
+  parentNoteId String? // 親ノートのID（深堀りの場合）
+  depth        Int     @default(0) // 深堀りの深さ（0=元メモ、1-5=深堀り）
+  question     String? // ドゥイットくんからの質問（深堀りノートの場合）
+
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   Note?  @relation("NoteTree", fields: [parentNoteId], references: [id], onDelete: Cascade)
+  children Note[] @relation("NoteTree")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@map("notes")
 }
