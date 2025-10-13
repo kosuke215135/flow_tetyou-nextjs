@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { generateDeepDiveQuestion, createChildNote } from '@/lib/actions';
+import { generateDeepDiveQuestion, createChildNote, getNotes } from '@/lib/actions';
 import { type JSONContent } from '@tiptap/react';
 import Editor from './Editor';
+import DeepDiveTree from './DeepDiveTree';
+import useSWR, { mutate } from 'swr';
 
 interface DeepDiveState {
   parentNoteId: string;
+  originalParentNoteId: string; // 最初にドロップされた親ノートのID
   currentDepth: number;
   question: string;
   isLoading: boolean;
@@ -25,6 +28,62 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
   const [deepDiveState, setDeepDiveState] = useState<DeepDiveState | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // 親ノートのデータを取得（深堀り中のみ）
+  const { data: notesData } = useSWR(
+    deepDiveState ? 'deepdive-notes' : null,
+    async () => {
+      const res = await getNotes();
+      if (!res.success) {
+        throw new Error(res.error || 'Failed to fetch notes');
+      }
+      return res.data || [];
+    },
+    {
+      refreshInterval: 1000, // 1秒ごとに更新（深堀り中のリアルタイム更新）
+    }
+  );
+
+  // 親ノートを見つける（最初にドロップされたノート）
+  const findParentNote = (noteId: string) => {
+    if (!notesData) return null;
+
+    // まず親ノートとして探す
+    const parentNote = notesData.find((n: any) => n.id === noteId);
+    if (parentNote) return parentNote;
+
+    // 子ノートの場合は親を辿る
+    for (const note of notesData) {
+      const found = findNoteInChildren(note, noteId);
+      if (found) {
+        // 最上位の親ノートを返す
+        return note;
+      }
+    }
+    return null;
+  };
+
+  const findNoteInChildren = (note: any, targetId: string): any => {
+    if (note.id === targetId) return note;
+    if (note.children) {
+      for (const child of note.children) {
+        const found = findNoteInChildren(child, targetId);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  const parentNote = deepDiveState ? findParentNote(deepDiveState.originalParentNoteId) : null;
+
+  // デバッグログ
+  useEffect(() => {
+    if (deepDiveState) {
+      console.log('deepDiveState:', deepDiveState);
+      console.log('notesData:', notesData);
+      console.log('parentNote:', parentNote);
+    }
+  }, [deepDiveState, notesData, parentNote]);
+
   // ノートがドロップされたら深堀りモードを開始
   useEffect(() => {
     if (droppedNoteId && !deepDiveState) {
@@ -36,6 +95,7 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
     setError(null);
     setDeepDiveState({
       parentNoteId: noteId,
+      originalParentNoteId: noteId, // 最初の親ノートIDを保存
       currentDepth: -1,
       question: '',
       isLoading: true,
@@ -52,6 +112,7 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
 
       setDeepDiveState({
         parentNoteId: noteId,
+        originalParentNoteId: noteId, // 最初の親ノートIDを保持
         currentDepth: 0,
         question: questionResult.data,
         isLoading: false,
@@ -100,6 +161,7 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
         // 次の質問を表示
         setDeepDiveState({
           parentNoteId: createResult.data.id,
+          originalParentNoteId: deepDiveState.originalParentNoteId, // 元の親ノートIDを維持
           currentDepth: deepDiveState.currentDepth + 1,
           question: questionResult.data,
           isLoading: false,
@@ -107,7 +169,8 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
       } else {
         // 深堀り完了
         setDeepDiveState(null);
-        // TODO: ツリー表示に切り替え
+        // ツリー表示を更新
+        mutate('deepdive-notes');
       }
     } catch (err) {
       console.error('Error in handleAnswer:', err);
@@ -162,32 +225,51 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
         🔍 深堀り中... ({deepDiveState.currentDepth + 1}/5)
       </h2>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-        <div className="flex items-start gap-3 mb-4">
-          <img
-            src="/doitkun.webp"
-            alt="ドゥイットくん"
-            className="w-12 h-12 rounded-full object-cover border-2 border-blue-400"
-          />
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-blue-600 mb-1">ドゥイットくん</p>
-            <p className="text-base text-gray-800">{deepDiveState.question}</p>
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded p-3 mb-4">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {/* 質問と回答入力エリア */}
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-start gap-3 mb-4">
+            <img
+              src="/doitkun.webp"
+              alt="ドゥイットくん"
+              className="w-12 h-12 rounded-full object-cover border-2 border-blue-400"
+            />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-blue-600 mb-1">ドゥイットくん</p>
+              <p className="text-base text-gray-800">{deepDiveState.question}</p>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <p className="text-sm font-semibold text-gray-700 mb-2">あなたの回答:</p>
+            <Editor
+              onNoteSubmit={handleAnswer}
+              submitButtonText={deepDiveState.isLoading ? '保存中...' : '回答する'}
+              disabled={deepDiveState.isLoading}
+            />
           </div>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded p-3 mb-4">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        )}
-
-        <div className="border-t pt-4">
-          <p className="text-sm font-semibold text-gray-700 mb-2">あなたの回答:</p>
-          <Editor
-            onNoteSubmit={handleAnswer}
-            submitButtonText={deepDiveState.isLoading ? '保存中...' : '回答する'}
-            disabled={deepDiveState.isLoading}
-          />
+        {/* ツリー表示（下部） */}
+        <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">💭 思考の流れ</h3>
+          {parentNote ? (
+            <DeepDiveTree
+              parentNote={parentNote}
+              currentDepth={deepDiveState.currentDepth}
+              currentQuestion={deepDiveState.question}
+            />
+          ) : (
+            <div className="flex items-center justify-center py-8">
+              <p className="text-sm text-gray-500">ノート情報を読み込み中...</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
