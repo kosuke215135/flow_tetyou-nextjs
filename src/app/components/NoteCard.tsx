@@ -11,6 +11,7 @@ import { NoteModel } from '@/types/note';
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
+import { getTreeColor, type TreeColor } from '@/lib/treeColors';
 
 const lowlight = createLowlight(all);
 
@@ -25,9 +26,10 @@ type NoteWithChildren = NoteModel & {
 
 interface NoteCardProps {
   note: NoteWithChildren;
+  index?: number; // リスト内のインデックス（色分け用）
 }
 
-export default function NoteCard({ note }: NoteCardProps) {
+export default function NoteCard({ note, index = 0 }: NoteCardProps) {
   const parsedContent = JSON.parse(note.text);
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -74,7 +76,7 @@ export default function NoteCard({ note }: NoteCardProps) {
         style={style}
         {...listeners}
         {...attributes}
-        className="bg-white rounded-lg shadow-md border border-gray-200 p-4 transition-opacity"
+        className="bg-white rounded-lg shadow-md border border-gray-200 p-4 transition-all hover:shadow-lg hover:-translate-y-1 duration-200"
       >
         <div className="mb-3">
           <div className="flex justify-between items-start">
@@ -117,12 +119,17 @@ export default function NoteCard({ note }: NoteCardProps) {
         </button>
       )}
 
-      {/* 子ノート（深堀り履歴）を表示 */}
+      {/* 子ノート（深堀り履歴）を表示 - 各深堀りツリーごとに色分け */}
       {hasChildren && isExpanded && (
-        <div className="ml-8 mt-4 border-l-2 border-blue-200 pl-4">
-          {note.children!.map((child) => (
-            <ChildNoteCard key={child.id} note={child} />
-          ))}
+        <div className="ml-8 mt-4 space-y-6">
+          {note.children!.map((child, childIndex) => {
+            const treeColor = getTreeColor(childIndex);
+            return (
+              <div key={child.id} className={`border-l-2 ${treeColor.border} pl-4 ${treeColor.bg} rounded-lg p-4`}>
+                <ChildNoteCard note={child} treeColor={treeColor} />
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -130,8 +137,10 @@ export default function NoteCard({ note }: NoteCardProps) {
 }
 
 // 子ノート用のカード（ドラッグ不可、質問付き）
-function ChildNoteCard({ note }: { note: NoteWithChildren }) {
+function ChildNoteCard({ note, treeColor }: { note: NoteWithChildren; treeColor: TreeColor }) {
   const parsedContent = JSON.parse(note.text);
+  const depth = note.depth || 1;
+  const isLastQuestion = depth === 5;
 
   const editor = useEditor({
     extensions: [
@@ -156,21 +165,30 @@ function ChildNoteCard({ note }: { note: NoteWithChildren }) {
   }
 
   return (
-    <div className="mb-4">
+    <div className="mb-6">
       {/* ドゥイットくんの質問 */}
       {note.question && (
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-2 rounded">
+        <div className={`bg-white ${treeColor.border} border-l-4 border-t border-r border-b p-4 mb-2 rounded-lg relative shadow-md`}>
+          {/* 深さバッジ */}
+          <div className={`absolute -left-3 -top-3 w-8 h-8 rounded-full ${treeColor.accent} flex items-center justify-center text-white text-xs font-bold shadow-md`}>
+            Q{depth}
+          </div>
           <div className="flex items-start gap-2">
-            <span className="text-blue-600 font-semibold text-xs">💪 Q:</span>
-            <p className="text-sm text-blue-800">{note.question}</p>
+            <span className="text-xl">{isLastQuestion ? '🎯' : '💪'}</span>
+            <div className="flex-1">
+              <div className="text-xs font-semibold text-gray-600 mb-1">
+                {isLastQuestion ? 'ドゥイットくんの最後の質問' : 'ドゥイットくんの質問'}
+              </div>
+              <p className="text-sm font-medium text-gray-800">{note.question}</p>
+            </div>
           </div>
         </div>
       )}
 
       {/* 回答 */}
-      <div className="bg-gray-50 rounded-lg border border-gray-200 p-3">
-        <div className="flex items-start gap-2 mb-2">
-          <span className="text-gray-600 font-semibold text-xs">A:</span>
+      <div className="ml-6 bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs font-semibold text-gray-500">あなたの回答:</span>
         </div>
         <div className="note-content">
           <EditorContent editor={editor} />
@@ -180,11 +198,22 @@ function ChildNoteCard({ note }: { note: NoteWithChildren }) {
         </div>
       </div>
 
+      {/* 進捗バー */}
+      <div className="ml-6 mt-2 flex items-center gap-2">
+        <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className={`h-full ${treeColor.accent} transition-all duration-300`}
+            style={{ width: `${(depth / 5) * 100}%` }}
+          />
+        </div>
+        <span className="text-xs text-gray-500">{depth}/5</span>
+      </div>
+
       {/* 子ノート（さらに深い階層）を再帰的に表示 */}
       {note.children && note.children.length > 0 && (
-        <div className="ml-6 mt-3 border-l-2 border-blue-100 pl-4">
+        <div className="ml-6 mt-4">
           {note.children.map((child) => (
-            <ChildNoteCard key={child.id} note={child} />
+            <ChildNoteCard key={child.id} note={child} treeColor={treeColor} />
           ))}
         </div>
       )}
