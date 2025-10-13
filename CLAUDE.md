@@ -4,15 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## プロジェクト概要
 
-**Flow Tetyou (フロー手帳)** は、AIアシスタント機能を持つNext.jsベースのメモアプリです。ユーザーの抽象的な思考（「ふわふわした思考」）を、「ドゥイットくん」というAIアシスタントが具体的なアクションプランに変換します。
+**Flow Tetyou (フロー手帳)** は、AIアシスタント機能を持つNext.jsベースのメモアプリです。ユーザーのモヤモヤしたメモを「ドゥイットくん」というAIアシスタントが「なぜ？」と繰り返し問いかけることで、思考を深堀りし、ツリー構造で可視化します。
 
 ### コアコンセプト
-ユーザーが曖昧な・抽象的なメモを書くと:
-1. Gemini AIが「ゆるふわスコア」（抽象度スコア 0.0-1.0）を計算
-2. スコアが「ゆるふわメーター」に蓄積される
-3. メーターが閾値（≥1.0）に達すると「ドゥイットくん」が召喚される
-4. 蓄積されたメモから3つの具体的な「小さな一歩」を生成
-5. メーターをリセットし、メモを処理済みにマーク
+ユーザーがモヤモヤしたメモを書くと:
+1. ノートを「ドゥイットくんエリア」にドラッグ&ドロップ
+2. ドゥイットくんが「なぜ？」の質問を生成（Gemini AI）
+3. ユーザーが質問に答えて、子ノートとして保存
+4. 2-3を5回繰り返して思考を深堀り（depth 1-5）
+5. 親ノートと子ノートがツリー構造で表示される
+6. 深堀り履歴は折りたたみ/展開が可能
 
 ## コマンド
 
@@ -40,6 +41,7 @@ npx prisma studio     # Prisma Studio GUI起動
 - **AI**: Google Gemini API (gemini-2.5-flash model)
 - **スタイリング**: Tailwind CSS v4
 - **リッチテキスト**: TipTap editor (タスクリスト、コードブロック、リンク対応)
+- **ドラッグ&ドロップ**: @dnd-kit/core, @dnd-kit/utilities
 - **状態管理**: SWR (データフェッチとキャッシュ)
 - **パッケージマネージャー**: pnpm
 
@@ -51,22 +53,19 @@ npx prisma studio     # Prisma Studio GUI起動
 src/
 ├── app/                      # Next.js App Router
 │   ├── api/                  # APIルート
-│   │   ├── auth/[...nextauth]/ # NextAuthハンドラー
-│   │   ├── update-score/     # バックグラウンドスコア計算
-│   │   └── user/             # ユーザーデータエンドポイント
+│   │   └── auth/[...nextauth]/ # NextAuthハンドラー
 │   ├── auth/                 # 認証ページ (signin, error)
 │   ├── components/           # Reactコンポーネント
 │   │   ├── ui/               # 再利用可能UIコンポーネント
 │   │   ├── Editor.tsx        # TipTapリッチテキストエディタ
-│   │   ├── NotesPage.tsx     # メインノートページ (SWR使用)
-│   │   ├── NotesList.tsx     # ノートリスト表示
-│   │   ├── YurufuwaMeter.tsx # メーター進捗バー
-│   │   ├── DoitKunArea.tsx   # AIアシスタントUI
+│   │   ├── NotesPage.tsx     # メインノートページ (DndContext含む)
+│   │   ├── NoteCard.tsx      # ドラッグ可能なノートカード + ツリー表示
+│   │   ├── DoitKunArea.tsx   # AIアシスタントUI (ドロップゾーン + 深堀りモード)
 │   │   └── Header.tsx        # アプリヘッダー
-│   ├── page.tsx              # ホームページ (NotesPageへリダイレクト)
+│   ├── page.tsx              # ホームページ (DndContextプロバイダー)
 │   └── layout.tsx            # ルートレイアウト (プロバイダー含む)
 ├── lib/
-│   ├── actions.ts            # サーバーアクション (createNote, getNotes, generateSmallStepActionPlan)
+│   ├── actions.ts            # サーバーアクション (createNote, getNotes, generateDeepDiveQuestion, createChildNote)
 │   ├── auth.ts               # NextAuth設定
 │   ├── prisma.ts             # Prismaクライアントシングルトン
 │   └── utils.ts              # ユーティリティ関数 (extractTextFromContent等)
@@ -91,27 +90,33 @@ docs/                         # プロジェクトドキュメント
 **ノート作成フロー:**
 1. ユーザーがTipTapエディタで入力 → `Editor.tsx`
 2. `handleNoteSubmit()`がSWRでOptimistic UIを更新
-3. `createNote()`サーバーアクションがDBに保存
-4. クライアントが`/api/update-score`を非同期で呼び出し
-5. APIがGemini AIでゆるふわスコアを計算
-6. トランザクションで`note.yurufuwaScore`と`user.yurufuwaMeter`を更新
-7. SWRが5秒ごとに自動再検証
+3. `createNote()`サーバーアクションがDBに保存（depth=0の親ノートとして）
+4. SWRが自動再検証でノートリストを更新
 
-**アクションプラン生成フロー:**
-1. `DoitKunArea.tsx`がSWRで`/api/user`を5秒ごとにポーリング
-2. `yurufuwaMeter >= 1.0`になると`generateSmallStepActionPlan()`を起動
-3. サーバーアクションが`actionPlanGenerated = false`の全ノートを取得
-4. ノートのテキストを結合 → Geminiに送信して3つのアクションプランを生成
-5. プランをlocalStorageに保存、メーターを0にリセット、ノートを処理済みにマーク
-6. プランはメーターリセット後もUI上に残る
+**深堀りフロー（ドラッグ&ドロップ）:**
+1. ユーザーが親ノートを`DoitKunArea.tsx`にドラッグ&ドロップ
+2. `DoitKunArea`が深堀りモードを起動
+3. `generateDeepDiveQuestion()`サーバーアクションがGemini AIで質問を生成
+4. 質問を表示（例: 「なぜ〇〇なんだ？」）
+5. ユーザーがTipTapエディタで回答を入力
+6. `createChildNote()`サーバーアクションが子ノートとして保存（parentNoteId、depth、question付き）
+7. 次の質問を生成（depth 1→2→...→5）
+8. 5回繰り返して深堀り完了
+9. SWRが再検証し、ツリー構造で表示
+
+**ツリー表示フロー:**
+1. `getNotes()`が親ノート（depth=0）のみを取得
+2. 各親ノートは`children`リレーションで子ノートを再帰的に含む（depth=5まで）
+3. `NoteCard.tsx`が親ノートを表示し、折りたたみ可能な子ノートを表示
+4. 子ノートには質問（Q:）と回答（A:）が表示される
 
 ### 重要なファイル
 
-- **src/lib/actions.ts**: Gemini AI統合を含むコアサーバーアクション
-- **src/app/api/update-score/route.ts**: 非同期ゆるふわスコア計算 (即座に202を返す)
-- **src/app/components/NotesPage.tsx**: 5秒ポーリングのSWRを使用するメインページ
-- **src/app/components/DoitKunArea.tsx**: localStorage永続化を持つAIアシスタントUI
-- **prisma/schema.prisma**: データベーススキーマ (User, Note, NextAuthテーブル)
+- **src/lib/actions.ts**: Gemini AI統合を含むコアサーバーアクション（generateDeepDiveQuestion, createChildNote）
+- **src/app/page.tsx**: DndContextプロバイダーを配置するメインページ
+- **src/app/components/DoitKunArea.tsx**: ドロップゾーン + 深堀りモードを持つAIアシスタントUI
+- **src/app/components/NoteCard.tsx**: ドラッグ可能なノートカード + ツリー表示 + 折りたたみ機能
+- **prisma/schema.prisma**: データベーススキーマ (User, Note with tree structure, NextAuthテーブル)
 
 ### 重要なパターン
 
@@ -123,18 +128,20 @@ docs/                         # プロジェクトドキュメント
 
 **Gemini AI統合:**
 - モデル: `gemini-2.5-flash`
-- ゆるふわスコアリング: 0.0-1.0の抽象度スコアを返す
-- アクションプラン生成: 3つの文字列のJSON配列を返す
-- どちらもレスポンステキストから正規表現で結果を抽出
+- 深堀り質問生成: ドゥイットくん風の「なぜ？」質問を生成
+- depthに応じてプロンプトを調整（depth 4では「で、どうしたいんだ？」）
+- レスポンステキストから質問を抽出
+
+**ドラッグ&ドロップ:**
+- `@dnd-kit/core`を使用
+- `useDraggable`でノートをドラッグ可能に
+- `useDroppable`でドゥイットくんエリアをドロップゾーンに
+- ドロップ時にノートIDを取得して深堀りモードを起動
 
 **SWR設定:**
-- 5秒ポーリング (`refreshInterval: 5000`)
 - ノート作成時のOptimistic Update
 - 認証状態に基づく条件付きフェッチ
-
-**データベーストランザクション:**
-- ゆるふわメーター更新は`prisma.$transaction()`を使用
-- ノートスコアとユーザーメーターのアトミックな更新を保証
+- 深堀り完了後の自動再検証
 
 ## ワークフロープロセス (GEMINI.md準拠)
 
@@ -255,18 +262,23 @@ NEXTAUTH_SECRET=           # NextAuthシークレットキー
 
 ## AI統合に関する注意点
 
-**ゆるふわスコア計算:**
-- ノート作成後に非同期でトリガー
-- 非常に短いテキスト（< 10文字）の場合はスコア < 0.1
-- プロンプト: "以下の文章は、具体的な行動計画に近いですか？抽象的なアイデアに近いですか？抽象度を0.0から1.0の数値で評価してください。"
-- Geminiレスポンスから正規表現で数値を抽出
+**深堀り質問生成:**
+- ノートがドロップされたときにトリガー
+- `generateDeepDiveQuestion(parentNoteId, currentDepth)`を呼び出す
+- プロンプト例（depth 0-3の場合）:
+  ```
+  君はドゥイットくん。脳筋行動派のパーソナルトレーナー（ニート）だ。
 
-**アクションプラン生成:**
-- yurufuwaMeter >= 1.0のときにトリガー
-- 未処理の全ノートを結合
-- プロンプト: "以下の思考の断片から、日常のモヤモヤを解消するための具体的な「小さな一歩」を3つ、JSON形式の文字列配列として提案してください。"
-- JSON配列形式のレスポンスを期待: `["プラン1", "プラン2", "プラン3"]`
-- プランはlocalStorageに保存され、メーターリセット後も残る
+  ユーザーの以下のモヤモヤメモに対して、核心を突く「なぜ？」の質問を1つ考えろ。
+  論理は破綻してても構わない。むしろドゥイットくんらしい脳筋質問が良い。
+
+  メモ: 「${noteContent}」
+
+  一人称は「オレ」、二人称は「君」を使え。
+  短く、シンプルに。質問文だけを返せ。
+  ```
+- depth 4の場合は「で、どうしたいんだ？」という行動を促すプロンプトに変更
+- Geminiレスポンスから質問テキストを抽出し返す
 
 ## トラブルシューティング
 

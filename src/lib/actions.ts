@@ -137,7 +137,11 @@ ${parentText ? `前の質問への回答: 「${parentText}」` : ''}
       contents: [prompt],
     });
 
-    const question = response.text.trim();
+    const question = response.text?.trim() || '';
+
+    if (!question) {
+      return { success: false, error: 'Failed to generate question from AI' };
+    }
 
     return { success: true, data: question };
   } catch (error) {
