@@ -7,21 +7,26 @@ import TaskList from '@tiptap/extension-task-list';
 import Link from '@tiptap/extension-link';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { all, createLowlight } from 'lowlight';
-import { NoteModel } from '@/types/note';
-
 const lowlight = createLowlight(all);
 
-type NoteWithChildren = NoteModel & {
+// DeepDiveTree用のNote型
+type DeepDiveNote = {
+  id: string;
+  userId: string;
+  text: string;
+  createdAt: Date;
+  updatedAt: Date;
+  parentNoteId?: string | null;
+  depth?: number;
+  question?: string | null;
   user: {
     name: string | null;
   };
-  children?: NoteWithChildren[];
-  question?: string | null;
-  depth?: number;
+  children?: DeepDiveNote[];
 };
 
 interface DeepDiveTreeProps {
-  parentNote: NoteWithChildren;
+  parentNote: DeepDiveNote;
   currentDepth: number;
   currentQuestion: string;
 }
@@ -72,27 +77,12 @@ export default function DeepDiveTree({ parentNote, currentDepth, currentQuestion
           ))}
         </div>
       )}
-
-      {/* 現在の質問（ハイライト表示） */}
-      {currentQuestion && (
-        <div className="ml-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400 animate-pulse">
-          <div className="flex items-start gap-2">
-            <span className="text-green-700 font-semibold text-sm">💪 Q{currentDepth + 1}:</span>
-            <div>
-              <p className="text-sm text-green-800 font-medium">{currentQuestion}</p>
-              <p className="text-xs text-green-600 mt-2">
-                👉 右側で回答を入力してください
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
 // 質問と回答のペアを表示するコンポーネント
-function QAItem({ note, index }: { note: NoteWithChildren; index: number }) {
+function QAItem({ note, index }: { note: DeepDiveNote; index: number }) {
   const parsedContent = JSON.parse(note.text);
 
   const editor = useEditor({

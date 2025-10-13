@@ -231,45 +231,47 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
         </div>
       )}
 
-      <div className="space-y-4">
-        {/* 質問と回答入力エリア */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="flex items-start gap-3 mb-4">
-            <img
-              src="/doitkun.webp"
-              alt="ドゥイットくん"
-              className="w-12 h-12 rounded-full object-cover border-2 border-blue-400"
-            />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-blue-600 mb-1">ドゥイットくん</p>
-              <p className="text-base text-gray-800">{deepDiveState.question}</p>
-            </div>
-          </div>
-
-          <div className="border-t pt-4">
-            <p className="text-sm font-semibold text-gray-700 mb-2">あなたの回答:</p>
-            <Editor
-              onNoteSubmit={handleAnswer}
-              submitButtonText={deepDiveState.isLoading ? '保存中...' : '回答する'}
-              disabled={deepDiveState.isLoading}
-            />
-          </div>
-        </div>
-
-        {/* ツリー表示（下部） */}
-        <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">💭 思考の流れ</h3>
-          {parentNote ? (
+      {/* 縦に流れるレイアウト: ツリー → 現在の質問 → 入力エリア */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        {/* これまでのツリー表示 */}
+        {parentNote ? (
+          <div className="mb-6">
             <DeepDiveTree
-              parentNote={parentNote}
+              parentNote={parentNote as any}
               currentDepth={deepDiveState.currentDepth}
               currentQuestion={deepDiveState.question}
             />
-          ) : (
-            <div className="flex items-center justify-center py-8">
-              <p className="text-sm text-gray-500">ノート情報を読み込み中...</p>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center py-8 mb-6">
+            <p className="text-sm text-gray-500">ノート情報を読み込み中...</p>
+          </div>
+        )}
+
+        {/* 現在の質問と入力エリア（ツリーの続きとして） */}
+        <div className="ml-4 pl-4 border-l-2 border-blue-200">
+          <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+            <div className="flex items-start gap-3 mb-4">
+              <img
+                src="/doitkun.webp"
+                alt="ドゥイットくん"
+                className="w-12 h-12 rounded-full object-cover border-2 border-blue-400"
+              />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-blue-600 mb-1">ドゥイットくん</p>
+                <p className="text-base text-gray-800">{deepDiveState.question}</p>
+              </div>
             </div>
-          )}
+
+            <div className="border-t pt-4">
+              <p className="text-sm font-semibold text-gray-700 mb-2">あなたの回答:</p>
+              <Editor
+                onNoteSubmit={handleAnswer}
+                submitButtonText={deepDiveState.isLoading ? '保存中...' : '回答する'}
+                disabled={deepDiveState.isLoading}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
