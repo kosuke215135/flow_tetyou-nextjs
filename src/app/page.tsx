@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import NotesPage from "@/app/components/NotesPage";
 import DoitKunArea from '@/app/components/DoitKunArea';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
+import { deleteNote } from '@/lib/actions';
+import { mutate } from 'swr';
 
 export default function Home() {
   const [droppedNoteId, setDroppedNoteId] = useState<string | null>(null);
@@ -11,12 +13,22 @@ export default function Home() {
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && over.id === 'doitkun-drop-zone') {
       console.log('Dropped note:', active.id);
       setDroppedNoteId(String(active.id));
+    } else if (over && over.id === 'trash-drop-zone') {
+      // ゴミ箱へドロップされた
+      if (confirm('このノートを削除しますか？深堀り履歴も一緒に削除されます。')) {
+        const result = await deleteNote(String(active.id));
+        if (result.success) {
+          mutate('notes'); // SWRで再検証
+        } else {
+          alert('削除に失敗しました: ' + result.error);
+        }
+      }
     }
   };
 
@@ -57,8 +69,8 @@ export default function Home() {
         </div>
         <aside
           ref={sidebarRef}
-          style={{ width: `${sidebarWidth}px` }}
-          className="relative p-8 bg-gray-50 border-l border-gray-200"
+          style={{ width: `${sidebarWidth}px`, height: '100vh' }}
+          className="sticky top-0 relative p-8 bg-gray-50 border-l border-gray-200 overflow-y-auto"
         >
           <div
             onMouseDown={handleMouseDown}

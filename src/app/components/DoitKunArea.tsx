@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { generateDeepDiveQuestion, createChildNote, getNotes } from '@/lib/actions';
+import { generateDeepDiveQuestion, createChildNote, getNotes, deleteNote } from '@/lib/actions';
 import { type JSONContent } from '@tiptap/react';
 import Editor from './Editor';
 import DeepDiveTree from './DeepDiveTree';
@@ -23,6 +23,10 @@ interface DoitKunAreaProps {
 export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
   const { isOver, setNodeRef } = useDroppable({
     id: 'doitkun-drop-zone',
+  });
+
+  const { isOver: isOverTrash, setNodeRef: setTrashNodeRef } = useDroppable({
+    id: 'trash-drop-zone',
   });
 
   const [deepDiveState, setDeepDiveState] = useState<DeepDiveState | null>(null);
@@ -124,6 +128,13 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
     }
   };
 
+  const handleAbort = () => {
+    if (confirm('深堀りを中断しますか？これまでの回答は保存されています。')) {
+      setDeepDiveState(null);
+      mutate('deepdive-notes'); // ツリー表示を更新
+    }
+  };
+
   const handleAnswer = async (data: { content: JSONContent }) => {
     if (!deepDiveState) return;
 
@@ -182,7 +193,7 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
   // 待機中の表示
   if (!deepDiveState) {
     return (
-      <div>
+      <div className="space-y-4">
         <h2 className="text-lg font-bold mb-4 text-center">💪 ドゥイットくんエリア</h2>
 
         <div
@@ -210,6 +221,34 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
               </p>
               <p className="text-sm text-gray-500">
                 オレが「なぜ？」を繰り返して、君の思考を深堀りしてやるぜ
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* スペーサー */}
+        <div className="my-12 border-t-2 border-gray-300"></div>
+
+        {/* ゴミ箱エリア */}
+        <div className="mt-8">
+          <h3 className="text-sm font-bold text-gray-700 mb-4 text-center">🗑️ ゴミ箱</h3>
+          <div
+            ref={setTrashNodeRef}
+            className={`
+              min-h-[150px]
+              border-4 border-dashed rounded-lg
+              flex flex-col items-center justify-center
+              transition-all duration-200
+              ${isOverTrash
+                ? 'border-red-500 bg-red-50'
+                : 'border-gray-300 bg-gray-50'
+              }
+            `}
+          >
+            <div className="flex flex-col items-center gap-2">
+              <div className="text-5xl">🗑️</div>
+              <p className="text-sm font-semibold text-gray-700">
+                {isOverTrash ? 'ここでドロップして削除' : 'ノートをここにドロップして削除'}
               </p>
             </div>
           </div>
@@ -273,6 +312,17 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 中断ボタン */}
+      <div className="mt-4 flex justify-center">
+        <button
+          onClick={handleAbort}
+          disabled={deepDiveState.isLoading}
+          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          中断する
+        </button>
       </div>
     </div>
   );

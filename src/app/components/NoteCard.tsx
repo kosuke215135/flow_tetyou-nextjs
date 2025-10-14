@@ -40,7 +40,6 @@ export default function NoteCard({ note, index = 0 }: NoteCardProps) {
   const style = {
     transform: CSS.Translate.toString(transform),
     opacity: isDragging ? 0.5 : 1,
-    cursor: 'grab',
   };
 
   const editor = useEditor({
@@ -76,7 +75,7 @@ export default function NoteCard({ note, index = 0 }: NoteCardProps) {
         style={style}
         {...listeners}
         {...attributes}
-        className="bg-white rounded-lg shadow-md border border-gray-200 p-4 transition-all hover:shadow-lg hover:-translate-y-1 duration-200"
+        className="bg-white rounded-lg shadow-md border border-gray-200 p-4 transition-all hover:shadow-lg hover:-translate-y-1 duration-200 cursor-grab active:cursor-grabbing"
       >
         <div className="mb-3">
           <div className="flex justify-between items-start">

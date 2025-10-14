@@ -275,6 +275,36 @@ export async function createChildNote(data: {
   }
 }
 
+// ノート削除
+export async function deleteNote(noteId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: 'Authentication required' };
+    }
+
+    // ノートの所有者確認
+    const note = await prisma.note.findUnique({
+      where: { id: noteId },
+    });
+
+    if (!note || note.userId !== session.user.id) {
+      return { success: false, error: 'Note not found or unauthorized' };
+    }
+
+    // 削除（子ノートもonDelete: Cascadeで自動削除）
+    await prisma.note.delete({
+      where: { id: noteId },
+    });
+
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    console.error('Error in deleteNote:', error);
+    return { success: false, error: 'Failed to delete note' };
+  }
+}
+
 export async function signOutAndRevalidate() {
   await signOut({ redirectTo: "/auth/signin" });
   revalidatePath('/');
