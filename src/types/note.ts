@@ -11,6 +11,7 @@ interface NoteModel {
   userId: string;
   text: string;
   yurufuwaScore: number | null;
+  character?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
