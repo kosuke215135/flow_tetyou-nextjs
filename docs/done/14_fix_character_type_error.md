@@ -30,6 +30,6 @@ NoteModel型にcharacterプロパティを追加し、TypeScriptの型エラー�
 
 # タスク
 
-- [ ] `src/types/note.ts`の`NoteModel`インターフェースに`character?: string | null`を追加
-- [ ] TypeScriptの型エラーが解消されたことを確認
+- [x] `src/types/note.ts`の`NoteModel`インターフェースに`character?: string | null`を追加
+- [x] TypeScriptの型エラーが解消されたことを確認
 - [ ] ユーザーにチェックをもらう(必須)
