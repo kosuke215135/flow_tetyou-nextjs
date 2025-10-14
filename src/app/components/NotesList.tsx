@@ -17,11 +17,11 @@ export default function NotesList({ notes, className = '' }: NotesListProps) {
       <h2 className="text-xl font-semibold text-gray-800 mb-4">
         保存されたノート ({noteCount})
       </h2>
-      {notes.map((note, index) =>
+      {notes.map((note) =>
         note.isOptimistic ? (
           <NoteCardSkeleton key={note.id} />
         ) : (
-          <NoteCard key={note.id} note={note} index={index} />
+          <NoteCard key={note.id} note={note} />
         )
       )}
     </div>

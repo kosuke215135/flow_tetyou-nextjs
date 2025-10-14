@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TaskItem from '@tiptap/extension-task-item';
@@ -6,7 +6,7 @@ import TaskList from '@tiptap/extension-task-list';
 import Link from '@tiptap/extension-link';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { all, createLowlight } from 'lowlight';
-import { FaStar, FaRegStar, FaChevronDown, FaChevronRight } from 'react-icons/fa';
+import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import { NoteModel } from '@/types/note';
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { useDraggable } from '@dnd-kit/core';
@@ -27,10 +27,9 @@ type NoteWithChildren = NoteModel & {
 
 interface NoteCardProps {
   note: NoteWithChildren;
-  index?: number; // リスト内のインデックス（色分け用）
 }
 
-export default function NoteCard({ note, index = 0 }: NoteCardProps) {
+function NoteCard({ note }: NoteCardProps) {
   const parsedContent = JSON.parse(note.text);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -65,7 +64,6 @@ export default function NoteCard({ note, index = 0 }: NoteCardProps) {
     return null;
   }
 
-  const score = note.yurufuwaScore;
   const hasChildren = note.children && note.children.length > 0;
   const childrenCount = note.children?.length || 0;
 
@@ -252,6 +250,9 @@ function ChildNoteCard({ note, treeColor }: { note: NoteWithChildren; treeColor:
   );
 }
 
+// React.memoでメモ化してパフォーマンス改善
+export default memo(NoteCard);
+
 export function NoteCardSkeleton() {
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 mb-4">
@@ -261,7 +262,7 @@ export function NoteCardSkeleton() {
           <Skeleton className="h-3 w-20" />
         </div>
       </div>
-      
+
       <div className="note-content space-y-2">
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-full" />
