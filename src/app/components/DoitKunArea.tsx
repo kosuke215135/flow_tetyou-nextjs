@@ -329,6 +329,23 @@ export default function DoitKunArea({ droppedNoteId, onReset }: DoitKunAreaProps
         </div>
       )}
 
+      {/* 質問生成中のスピナー表示 */}
+      {deepDiveState.isLoading && deepDiveState.currentDepth === -1 && (
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+            <img
+              src={currentCharacter.image}
+              alt={currentCharacter.name}
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full object-cover"
+            />
+          </div>
+          <p className="text-sm text-gray-600 font-medium">
+            {currentCharacter.name}が質問を考え中...
+          </p>
+        </div>
+      )}
+
       {/* 縦に流れるレイアウト: ツリー → 現在の質問 → 入力エリア */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         {/* これまでのツリー表示 */}
@@ -349,28 +366,50 @@ export default function DoitKunArea({ droppedNoteId, onReset }: DoitKunAreaProps
 
         {/* 現在の質問と入力エリア（ツリーの続きとして） */}
         <div className="ml-4 pl-4 border-l-2 border-blue-200">
-          <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-            <div className="flex items-start gap-3 mb-4">
-              <img
-                src={currentCharacter.image}
-                alt={currentCharacter.name}
-                className="w-12 h-12 rounded-full object-cover border-2 border-blue-400"
-              />
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-blue-600 mb-1">{currentCharacter.name}</p>
-                <p className="text-base text-gray-800">{deepDiveState.question}</p>
+          {/* 回答保存後の質問生成中スピナー */}
+          {deepDiveState.isLoading && deepDiveState.currentDepth >= 0 && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm mb-4">
+              <div className="flex items-center gap-3">
+                <div className="relative flex-shrink-0">
+                  <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+                  <img
+                    src={currentCharacter.image}
+                    alt={currentCharacter.name}
+                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full object-cover"
+                  />
+                </div>
+                <p className="text-sm text-gray-600 font-medium">
+                  {currentCharacter.name}が次の質問を考え中...
+                </p>
               </div>
             </div>
+          )}
 
-            <div className="border-t pt-4">
-              <p className="text-sm font-semibold text-gray-700 mb-2">あなたの回答:</p>
-              <Editor
-                onNoteSubmit={handleAnswer}
-                submitButtonText={deepDiveState.isLoading ? '保存中...' : '回答する'}
-                disabled={deepDiveState.isLoading}
-              />
+          {/* 質問と入力エリア */}
+          {!deepDiveState.isLoading && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+              <div className="flex items-start gap-3 mb-4">
+                <img
+                  src={currentCharacter.image}
+                  alt={currentCharacter.name}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-blue-400"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-blue-600 mb-1">{currentCharacter.name}</p>
+                  <p className="text-base text-gray-800">{deepDiveState.question}</p>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <p className="text-sm font-semibold text-gray-700 mb-2">あなたの回答:</p>
+                <Editor
+                  onNoteSubmit={handleAnswer}
+                  submitButtonText="回答する"
+                  disabled={false}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
