@@ -17,9 +17,11 @@ const lowlight = createLowlight(all);
 
 interface NoteEditorProps {
   onNoteSubmit: (data: NoteFormData) => Promise<void>;
+  submitButtonText?: string;
+  disabled?: boolean;
 }
 
-export default function NoteEditor({ onNoteSubmit }: NoteEditorProps) {
+export default function NoteEditor({ onNoteSubmit, submitButtonText = '記録', disabled = false }: NoteEditorProps) {
     const { setValue, handleSubmit, formState: { isSubmitting } } = useForm<NoteFormData>();
     
     const onSubmit = async (data: NoteFormData) => {
@@ -65,9 +67,9 @@ export default function NoteEditor({ onNoteSubmit }: NoteEditorProps) {
           <button
             type="submit"
             className="submit-button bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
-            disabled={isSubmitting}
+            disabled={isSubmitting || disabled}
           >
-            {isSubmitting ? '保存中...' : '記録'}
+            {isSubmitting ? '保存中...' : submitButtonText}
           </button>
         </div>
       </div>

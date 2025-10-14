@@ -1,11 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
 import AuthButton from './auth/AuthButton';
-import YurufuwaMeter from './YurufuwaMeter';
-
-// SWRのfetcher関数
-const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const APP_NAME = "Flow手帳";
 
@@ -14,12 +9,6 @@ interface HeaderProps {
 }
 
 export function Header({ title }: HeaderProps) {
-  // SWRでユーザーデータを取得
-  const { data: user, error } = useSWR('/api/user', fetcher, {
-    refreshInterval: 5000, // 5秒ごとにポーリング
-  });
-
-  const userMeter = user?.yurufuwaMeter ?? 0;
 
   return (
     <header className="bg-gray-800 shadow-sm border-b border-gray-700">
@@ -30,12 +19,6 @@ export function Header({ title }: HeaderProps) {
             <h1 className="text-xl font-semibold text-white">
               {title ?? APP_NAME}
             </h1>
-          </div>
-
-          {/* 中央 */}
-          <div className="flex-1 flex justify-center">
-            {/* userが存在する場合のみメーターを表示 */}
-            {user && <YurufuwaMeter currentValue={userMeter} />}
           </div>
 
           {/* 右側 */}
