@@ -78,7 +78,10 @@ export default function Home() {
               isResizing ? 'w-2 bg-blue-500' : ''
             }`}
           />
-          <DoitKunArea droppedNoteId={droppedNoteId} />
+          <DoitKunArea
+            droppedNoteId={droppedNoteId}
+            onReset={() => setDroppedNoteId(null)}
+          />
         </aside>
       </main>
     </DndContext>

@@ -7,6 +7,7 @@ import { type JSONContent } from '@tiptap/react';
 import Editor from './Editor';
 import DeepDiveTree from './DeepDiveTree';
 import useSWR, { mutate } from 'swr';
+import { CHARACTERS, type CharacterType } from '@/types/character';
 
 interface DeepDiveState {
   parentNoteId: string;
@@ -14,13 +15,15 @@ interface DeepDiveState {
   currentDepth: number;
   question: string;
   isLoading: boolean;
+  character: CharacterType;
 }
 
 interface DoitKunAreaProps {
   droppedNoteId?: string | null;
+  onReset?: () => void;
 }
 
-export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
+export default function DoitKunArea({ droppedNoteId, onReset }: DoitKunAreaProps = {}) {
   const { isOver, setNodeRef } = useDroppable({
     id: 'doitkun-drop-zone',
   });
@@ -31,6 +34,7 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
 
   const [deepDiveState, setDeepDiveState] = useState<DeepDiveState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<CharacterType | null>(null);
 
   // 親ノートのデータを取得（深堀り中のみ）
   const { data: notesData } = useSWR(
@@ -88,29 +92,32 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
     }
   }, [deepDiveState, notesData, parentNote]);
 
-  // ノートがドロップされたら深堀りモードを開始
+  // ノートがドロップされたら、キャラクター選択状態にする
   useEffect(() => {
-    if (droppedNoteId && !deepDiveState) {
-      startDeepDive(droppedNoteId);
+    if (droppedNoteId && !deepDiveState && !selectedCharacter) {
+      // キャラクター選択を待つ（何もしない）
     }
   }, [droppedNoteId]);
 
-  const startDeepDive = async (noteId: string) => {
+  const startDeepDive = async (noteId: string, character: CharacterType) => {
     setError(null);
+    setSelectedCharacter(character);
     setDeepDiveState({
       parentNoteId: noteId,
       originalParentNoteId: noteId, // 最初の親ノートIDを保存
       currentDepth: -1,
       question: '',
       isLoading: true,
+      character,
     });
 
     try {
-      const questionResult = await generateDeepDiveQuestion(noteId, 0);
+      const questionResult = await generateDeepDiveQuestion(noteId, 0, character);
 
       if (!questionResult.success || !questionResult.data) {
         setError(questionResult.error || 'Failed to generate question');
         setDeepDiveState(null);
+        setSelectedCharacter(null);
         return;
       }
 
@@ -120,17 +127,21 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
         currentDepth: 0,
         question: questionResult.data,
         isLoading: false,
+        character,
       });
     } catch (err) {
       console.error('Error in startDeepDive:', err);
       setError('Unexpected error occurred');
       setDeepDiveState(null);
+      setSelectedCharacter(null);
     }
   };
 
   const handleAbort = () => {
     if (confirm('深堀りを中断しますか？これまでの回答は保存されています。')) {
       setDeepDiveState(null);
+      setSelectedCharacter(null);
+      onReset?.(); // 親コンポーネントのdroppedNoteIdをリセット
       mutate('deepdive-notes'); // ツリー表示を更新
     }
   };
@@ -148,6 +159,7 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
         content: data.content,
         question: deepDiveState.question,
         depth: deepDiveState.currentDepth + 1,
+        character: deepDiveState.character,
       });
 
       if (!createResult.success || !createResult.data) {
@@ -160,12 +172,14 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
       if (deepDiveState.currentDepth < 4) {
         const questionResult = await generateDeepDiveQuestion(
           createResult.data.id,
-          deepDiveState.currentDepth + 1
+          deepDiveState.currentDepth + 1,
+          deepDiveState.character
         );
 
         if (!questionResult.success || !questionResult.data) {
           setError(questionResult.error || 'Failed to generate next question');
           setDeepDiveState(null);
+          setSelectedCharacter(null);
           return;
         }
 
@@ -176,10 +190,13 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
           currentDepth: deepDiveState.currentDepth + 1,
           question: questionResult.data,
           isLoading: false,
+          character: deepDiveState.character,
         });
       } else {
         // 深堀り完了
         setDeepDiveState(null);
+        setSelectedCharacter(null);
+        onReset?.(); // 親コンポーネントのdroppedNoteIdをリセット
         // ツリー表示を更新
         mutate('deepdive-notes');
       }
@@ -192,9 +209,42 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
 
   // 待機中の表示
   if (!deepDiveState) {
+    // ノートがドロップされている場合：キャラクター選択UI
+    if (droppedNoteId) {
+      return (
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold mb-4 text-center">キャラクターを選んでね</h2>
+
+          <div className="grid grid-cols-2 gap-4">
+            {Object.values(CHARACTERS).map((char) => (
+              <button
+                key={char.id}
+                onClick={() => startDeepDive(droppedNoteId, char.id)}
+                className="bg-white border-2 border-gray-300 rounded-lg p-6 hover:border-blue-500 hover:shadow-lg transition-all duration-200 text-left"
+              >
+                <div className="flex flex-col items-center gap-3">
+                  <img
+                    src={char.image}
+                    alt={char.name}
+                    className="w-24 h-24 rounded-full object-cover border-4 border-gray-300"
+                  />
+                  <div className="text-center">
+                    <p className="text-lg font-bold mb-1">{char.emoji} {char.name}</p>
+                    <p className="text-xs text-gray-600 mb-2">{char.description}</p>
+                    <p className="text-sm text-gray-700 italic">「{char.catchphrase}」</p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ノートがドロップされていない場合：ドロップゾーン
     return (
       <div className="space-y-4">
-        <h2 className="text-lg font-bold mb-4 text-center">💪 ドゥイットくんエリア</h2>
+        <h2 className="text-lg font-bold mb-4 text-center">💪 深堀りエリア</h2>
 
         <div
           ref={setNodeRef}
@@ -210,17 +260,24 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
           `}
         >
           <div className="flex flex-col items-center gap-4">
-            <img
-              src="/doitkun.webp"
-              alt="ドゥイットくん"
-              className="w-32 h-32 rounded-full object-cover border-4 border-gray-300 shadow-md"
-            />
+            <div className="flex gap-4">
+              <img
+                src={CHARACTERS.doitkun.image}
+                alt={CHARACTERS.doitkun.name}
+                className="w-20 h-20 rounded-full object-cover border-4 border-gray-300 shadow-md"
+              />
+              <img
+                src={CHARACTERS.listener.image}
+                alt={CHARACTERS.listener.name}
+                className="w-20 h-20 rounded-full object-cover border-4 border-gray-300 shadow-md"
+              />
+            </div>
             <div className="text-center px-4">
               <p className="text-base font-semibold text-gray-700 mb-2">
                 ここにノートをドロップして深堀りを始めよう！
               </p>
               <p className="text-sm text-gray-500">
-                オレが「なぜ？」を繰り返して、君の思考を深堀りしてやるぜ
+                キャラクターを選んで、思考を深堀りできるよ
               </p>
             </div>
           </div>
@@ -258,6 +315,8 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
   }
 
   // 深堀り中の表示
+  const currentCharacter = CHARACTERS[deepDiveState.character];
+
   return (
     <div>
       <h2 className="text-lg font-bold mb-4 text-center">
@@ -279,6 +338,7 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
               parentNote={parentNote as any}
               currentDepth={deepDiveState.currentDepth}
               currentQuestion={deepDiveState.question}
+              character={deepDiveState.character}
             />
           </div>
         ) : (
@@ -292,12 +352,12 @@ export default function DoitKunArea({ droppedNoteId }: DoitKunAreaProps = {}) {
           <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
             <div className="flex items-start gap-3 mb-4">
               <img
-                src="/doitkun.webp"
-                alt="ドゥイットくん"
+                src={currentCharacter.image}
+                alt={currentCharacter.name}
                 className="w-12 h-12 rounded-full object-cover border-2 border-blue-400"
               />
               <div className="flex-1">
-                <p className="text-sm font-semibold text-blue-600 mb-1">ドゥイットくん</p>
+                <p className="text-sm font-semibold text-blue-600 mb-1">{currentCharacter.name}</p>
                 <p className="text-base text-gray-800">{deepDiveState.question}</p>
               </div>
             </div>
