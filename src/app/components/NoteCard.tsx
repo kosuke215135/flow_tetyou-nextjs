@@ -32,7 +32,7 @@ interface NoteCardProps {
 
 export default function NoteCard({ note, index = 0 }: NoteCardProps) {
   const parsedContent = JSON.parse(note.text);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: note.id,
