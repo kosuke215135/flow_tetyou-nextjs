@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TaskItem from '@tiptap/extension-task-item';
@@ -7,6 +8,7 @@ import TaskList from '@tiptap/extension-task-list';
 import Link from '@tiptap/extension-link';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { all, createLowlight } from 'lowlight';
+import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import { getTreeColor, type TreeColor } from '@/lib/treeColors';
 import { CHARACTERS, type CharacterType } from '@/types/character';
 const lowlight = createLowlight(all);
@@ -95,10 +97,13 @@ function QAItem({ note, index, treeColor, character }: { note: DeepDiveNote; ind
   const parsedContent = JSON.parse(note.text);
   const depth = note.depth || 1;
   const isLastQuestion = depth === 5;
+  const [isExpanded, setIsExpanded] = useState(true);
 
   // noteに保存されているcharacterを優先し、なければpropsのcharacterを使用
   const characterId = (note.character as CharacterType) || character;
   const currentCharacter = CHARACTERS[characterId];
+
+  const hasChildren = note.children && note.children.length > 0;
 
   const editor = useEditor({
     extensions: [
@@ -167,10 +172,34 @@ function QAItem({ note, index, treeColor, character }: { note: DeepDiveNote; ind
         <span className="text-xs text-gray-500">{depth}/5</span>
       </div>
 
+      {/* 階層ごとの折りたたみボタン */}
+      {hasChildren && (
+        <div className="ml-6 mt-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(!isExpanded);
+            }}
+            className={`${treeColor.accent} text-white px-3 py-1 rounded-md shadow-sm hover:opacity-80 transition-all text-xs font-medium`}
+          >
+            <div className="flex items-center gap-1">
+              {isExpanded ? (
+                <FaChevronDown className="text-[10px]" />
+              ) : (
+                <FaChevronRight className="text-[10px]" />
+              )}
+              <span>
+                {isExpanded ? '次の深堀りを隠す' : '次の深堀りを表示'}
+              </span>
+            </div>
+          </button>
+        </div>
+      )}
+
       {/* 子ノート（さらに深い階層）を再帰的に表示 */}
-      {note.children && note.children.length > 0 && (
+      {hasChildren && isExpanded && (
         <div className="ml-6 mt-4">
-          {note.children.map((child) => (
+          {note.children!.map((child) => (
             <QAItem key={child.id} note={child} index={index + 1} treeColor={treeColor} character={character} />
           ))}
         </div>
