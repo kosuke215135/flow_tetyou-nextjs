@@ -7,6 +7,7 @@ import TaskList from '@tiptap/extension-task-list';
 import Link from '@tiptap/extension-link';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { all, createLowlight } from 'lowlight';
+import { getTreeColor, type TreeColor } from '@/lib/treeColors';
 const lowlight = createLowlight(all);
 
 // DeepDiveTree用のNote型
@@ -72,9 +73,14 @@ export default function DeepDiveTree({ parentNote, currentDepth, currentQuestion
       {/* 既存の質問と回答 */}
       {parentNote.children && parentNote.children.length > 0 && (
         <div className="ml-4 space-y-4">
-          {parentNote.children.map((child, index) => (
-            <QAItem key={child.id} note={child} index={index} />
-          ))}
+          {parentNote.children.map((child, index) => {
+            const childTreeColor = getTreeColor(index);
+            return (
+              <div key={child.id} className={`border-l-2 ${childTreeColor.border} pl-4 ${childTreeColor.bg} rounded-lg p-4`}>
+                <QAItem note={child} index={index} treeColor={childTreeColor} />
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -82,8 +88,10 @@ export default function DeepDiveTree({ parentNote, currentDepth, currentQuestion
 }
 
 // 質問と回答のペアを表示するコンポーネント
-function QAItem({ note, index }: { note: DeepDiveNote; index: number }) {
+function QAItem({ note, index, treeColor }: { note: DeepDiveNote; index: number; treeColor: TreeColor }) {
   const parsedContent = JSON.parse(note.text);
+  const depth = note.depth || 1;
+  const isLastQuestion = depth === 5;
 
   const editor = useEditor({
     extensions: [
@@ -108,21 +116,32 @@ function QAItem({ note, index }: { note: DeepDiveNote; index: number }) {
   }
 
   return (
-    <div className="space-y-2">
-      {/* 質問 */}
+    <div className="mb-6">
+      {/* ドゥイットくんの質問 */}
       {note.question && (
-        <div className="p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
+        <div className={`bg-white ${treeColor.border} border-l-4 border-t border-r border-b p-4 mb-2 rounded-lg relative shadow-md`}>
+          {/* 深さバッジ */}
+          <div className={`absolute -left-3 -top-3 w-8 h-8 rounded-full ${treeColor.accent} flex items-center justify-center text-white text-xs font-bold shadow-md`}>
+            Q{depth}
+          </div>
           <div className="flex items-start gap-2">
-            <span className="text-yellow-700 font-semibold text-sm">💪 Q{index + 1}:</span>
-            <p className="text-sm text-yellow-800">{note.question}</p>
+            <span className="text-xl">{isLastQuestion ? '🎯' : '💪'}</span>
+            <div className="flex-1">
+              <div className="text-xs font-semibold text-gray-600 mb-1">
+                {isLastQuestion ? 'ドゥイットくんの最後の質問' : 'ドゥイットくんの質問'}
+              </div>
+              <p className="text-sm font-medium text-gray-800">{note.question}</p>
+            </div>
           </div>
         </div>
       )}
 
       {/* 回答 */}
-      <div className="ml-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-        <div className="text-xs text-gray-600 font-semibold mb-2">A{index + 1}:</div>
-        <div className="prose prose-sm max-w-none">
+      <div className="ml-6 bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs font-semibold text-gray-500">あなたの回答:</span>
+        </div>
+        <div className="note-content">
           <EditorContent editor={editor} />
         </div>
         <div className="text-xs text-gray-400 mt-2">
@@ -130,11 +149,22 @@ function QAItem({ note, index }: { note: DeepDiveNote; index: number }) {
         </div>
       </div>
 
-      {/* 再帰的に子ノードを表示 */}
+      {/* 進捗バー */}
+      <div className="ml-6 mt-2 flex items-center gap-2">
+        <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className={`h-full ${treeColor.accent} transition-all duration-300`}
+            style={{ width: `${(depth / 5) * 100}%` }}
+          />
+        </div>
+        <span className="text-xs text-gray-500">{depth}/5</span>
+      </div>
+
+      {/* 子ノート（さらに深い階層）を再帰的に表示 */}
       {note.children && note.children.length > 0 && (
-        <div className="ml-6 mt-3 space-y-4">
-          {note.children.map((child, childIndex) => (
-            <QAItem key={child.id} note={child} index={index + childIndex + 1} />
+        <div className="ml-6 mt-4">
+          {note.children.map((child) => (
+            <QAItem key={child.id} note={child} index={index + 1} treeColor={treeColor} />
           ))}
         </div>
       )}
