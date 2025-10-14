@@ -12,6 +12,7 @@ import { Skeleton } from "@/app/components/ui/skeleton";
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { getTreeColor, type TreeColor } from '@/lib/treeColors';
+import { CHARACTERS, type CharacterType } from '@/types/character';
 
 const lowlight = createLowlight(all);
 
@@ -141,6 +142,10 @@ function ChildNoteCard({ note, treeColor }: { note: NoteWithChildren; treeColor:
   const depth = note.depth || 1;
   const isLastQuestion = depth === 5;
 
+  // キャラクター情報を取得（デフォルトはドゥイットくん）
+  const characterId = (note.character as CharacterType) || 'doitkun';
+  const currentCharacter = CHARACTERS[characterId];
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -165,7 +170,7 @@ function ChildNoteCard({ note, treeColor }: { note: NoteWithChildren; treeColor:
 
   return (
     <div className="mb-6">
-      {/* ドゥイットくんの質問 */}
+      {/* キャラクターの質問 */}
       {note.question && (
         <div className={`bg-white ${treeColor.border} border-l-4 border-t border-r border-b p-4 mb-2 rounded-lg relative shadow-md`}>
           {/* 深さバッジ */}
@@ -173,10 +178,10 @@ function ChildNoteCard({ note, treeColor }: { note: NoteWithChildren; treeColor:
             Q{depth}
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-xl">{isLastQuestion ? '🎯' : '💪'}</span>
+            <span className="text-xl">{isLastQuestion ? '🎯' : currentCharacter.emoji}</span>
             <div className="flex-1">
               <div className="text-xs font-semibold text-gray-600 mb-1">
-                {isLastQuestion ? 'ドゥイットくんの最後の質問' : 'ドゥイットくんの質問'}
+                {isLastQuestion ? `${currentCharacter.name}の最後の質問` : `${currentCharacter.name}の質問`}
               </div>
               <p className="text-sm font-medium text-gray-800">{note.question}</p>
             </div>

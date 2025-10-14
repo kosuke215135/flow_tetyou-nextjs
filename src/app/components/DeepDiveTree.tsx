@@ -21,6 +21,7 @@ type DeepDiveNote = {
   parentNoteId?: string | null;
   depth?: number;
   question?: string | null;
+  character?: string | null;
   user: {
     name: string | null;
   };
@@ -94,7 +95,10 @@ function QAItem({ note, index, treeColor, character }: { note: DeepDiveNote; ind
   const parsedContent = JSON.parse(note.text);
   const depth = note.depth || 1;
   const isLastQuestion = depth === 5;
-  const currentCharacter = CHARACTERS[character];
+
+  // noteに保存されているcharacterを優先し、なければpropsのcharacterを使用
+  const characterId = (note.character as CharacterType) || character;
+  const currentCharacter = CHARACTERS[characterId];
 
   const editor = useEditor({
     extensions: [
@@ -120,7 +124,7 @@ function QAItem({ note, index, treeColor, character }: { note: DeepDiveNote; ind
 
   return (
     <div className="mb-6">
-      {/* ドゥイットくんの質問 */}
+      {/* キャラクターの質問 */}
       {note.question && (
         <div className={`bg-white ${treeColor.border} border-l-4 border-t border-r border-b p-4 mb-2 rounded-lg relative shadow-md`}>
           {/* 深さバッジ */}
