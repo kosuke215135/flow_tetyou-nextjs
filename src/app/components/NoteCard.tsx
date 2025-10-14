@@ -141,10 +141,13 @@ function ChildNoteCard({ note, treeColor }: { note: NoteWithChildren; treeColor:
   const parsedContent = JSON.parse(note.text);
   const depth = note.depth || 1;
   const isLastQuestion = depth === 5;
+  const [isExpanded, setIsExpanded] = useState(true);
 
   // キャラクター情報を取得（デフォルトはドゥイットくん）
   const characterId = (note.character as CharacterType) || 'doitkun';
   const currentCharacter = CHARACTERS[characterId];
+
+  const hasChildren = note.children && note.children.length > 0;
 
   const editor = useEditor({
     extensions: [
@@ -213,10 +216,34 @@ function ChildNoteCard({ note, treeColor }: { note: NoteWithChildren; treeColor:
         <span className="text-xs text-gray-500">{depth}/5</span>
       </div>
 
+      {/* 階層ごとの折りたたみボタン */}
+      {hasChildren && (
+        <div className="ml-6 mt-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(!isExpanded);
+            }}
+            className={`${treeColor.accent} text-white px-3 py-1 rounded-md shadow-sm hover:opacity-80 transition-all text-xs font-medium`}
+          >
+            <div className="flex items-center gap-1">
+              {isExpanded ? (
+                <FaChevronDown className="text-[10px]" />
+              ) : (
+                <FaChevronRight className="text-[10px]" />
+              )}
+              <span>
+                {isExpanded ? '次の深堀りを隠す' : '次の深堀りを表示'}
+              </span>
+            </div>
+          </button>
+        </div>
+      )}
+
       {/* 子ノート（さらに深い階層）を再帰的に表示 */}
-      {note.children && note.children.length > 0 && (
+      {hasChildren && isExpanded && (
         <div className="ml-6 mt-4">
-          {note.children.map((child) => (
+          {note.children!.map((child) => (
             <ChildNoteCard key={child.id} note={child} treeColor={treeColor} />
           ))}
         </div>
