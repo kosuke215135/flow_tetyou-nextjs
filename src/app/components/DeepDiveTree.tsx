@@ -8,6 +8,7 @@ import Link from '@tiptap/extension-link';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { all, createLowlight } from 'lowlight';
 import { getTreeColor, type TreeColor } from '@/lib/treeColors';
+import { CHARACTERS, type CharacterType } from '@/types/character';
 const lowlight = createLowlight(all);
 
 // DeepDiveTree用のNote型
@@ -30,9 +31,10 @@ interface DeepDiveTreeProps {
   parentNote: DeepDiveNote;
   currentDepth: number;
   currentQuestion: string;
+  character: CharacterType;
 }
 
-export default function DeepDiveTree({ parentNote, currentDepth, currentQuestion }: DeepDiveTreeProps) {
+export default function DeepDiveTree({ parentNote, currentDepth, currentQuestion, character }: DeepDiveTreeProps) {
   const parsedContent = JSON.parse(parentNote.text);
 
   const parentEditor = useEditor({
@@ -77,7 +79,7 @@ export default function DeepDiveTree({ parentNote, currentDepth, currentQuestion
             const childTreeColor = getTreeColor(index);
             return (
               <div key={child.id} className={`border-l-2 ${childTreeColor.border} pl-4 ${childTreeColor.bg} rounded-lg p-4`}>
-                <QAItem note={child} index={index} treeColor={childTreeColor} />
+                <QAItem note={child} index={index} treeColor={childTreeColor} character={character} />
               </div>
             );
           })}
@@ -88,10 +90,11 @@ export default function DeepDiveTree({ parentNote, currentDepth, currentQuestion
 }
 
 // 質問と回答のペアを表示するコンポーネント
-function QAItem({ note, index, treeColor }: { note: DeepDiveNote; index: number; treeColor: TreeColor }) {
+function QAItem({ note, index, treeColor, character }: { note: DeepDiveNote; index: number; treeColor: TreeColor; character: CharacterType }) {
   const parsedContent = JSON.parse(note.text);
   const depth = note.depth || 1;
   const isLastQuestion = depth === 5;
+  const currentCharacter = CHARACTERS[character];
 
   const editor = useEditor({
     extensions: [
@@ -125,10 +128,10 @@ function QAItem({ note, index, treeColor }: { note: DeepDiveNote; index: number;
             Q{depth}
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-xl">{isLastQuestion ? '🎯' : '💪'}</span>
+            <span className="text-xl">{isLastQuestion ? '🎯' : currentCharacter.emoji}</span>
             <div className="flex-1">
               <div className="text-xs font-semibold text-gray-600 mb-1">
-                {isLastQuestion ? 'ドゥイットくんの最後の質問' : 'ドゥイットくんの質問'}
+                {isLastQuestion ? `${currentCharacter.name}の最後の質問` : `${currentCharacter.name}の質問`}
               </div>
               <p className="text-sm font-medium text-gray-800">{note.question}</p>
             </div>
@@ -164,7 +167,7 @@ function QAItem({ note, index, treeColor }: { note: DeepDiveNote; index: number;
       {note.children && note.children.length > 0 && (
         <div className="ml-6 mt-4">
           {note.children.map((child) => (
-            <QAItem key={child.id} note={child} index={index + 1} treeColor={treeColor} />
+            <QAItem key={child.id} note={child} index={index + 1} treeColor={treeColor} character={character} />
           ))}
         </div>
       )}

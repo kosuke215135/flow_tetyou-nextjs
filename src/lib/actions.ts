@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache'
 import { GoogleGenAI } from "@google/genai";
 import { type JSONContent } from '@tiptap/react';
 import { extractTextFromContent } from '@/lib/utils';
+import { type CharacterType } from '@/types/character';
 
 export async function createNote(data: NoteFormData) {
   try {
@@ -86,7 +87,7 @@ export async function getNotes() {
 const genAI = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY!});
 
 // 深堀り用: Geminiで「なぜ？」の質問を生成
-export async function generateDeepDiveQuestion(noteId: string, currentDepth: number) {
+export async function generateDeepDiveQuestion(noteId: string, currentDepth: number, character: CharacterType = 'doitkun') {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -151,12 +152,78 @@ export async function generateDeepDiveQuestion(noteId: string, currentDepth: num
       })
       .join('\n\n');
 
-    // depthに応じてプロンプトを変更
+    // キャラクターとdepthに応じてプロンプトを変更
     let prompt = '';
 
-    if (currentDepth <= 1) {
-      // 最初の1-2回: 表面的な「なぜ？」を掘り下げる
-      prompt = `君はドゥイットくん。脳筋行動派のパーソナルトレーナー（ニート）だ。
+    if (character === 'listener') {
+      // リスナーさん用のプロンプト
+      if (currentDepth <= 1) {
+        // 最初の1-2回: 優しく受け止める
+        prompt = `あなたはリスナーさん。穏やかで癒し系のメンタルリカバリーコーチです。
+
+【状況】
+ユーザーが以下のモヤモヤを抱えています。
+「${originalText}」
+
+${qaHistory ? `【これまでの会話】\n${qaHistory}\n\n` : ''}
+
+【依頼】
+このモヤモヤについて、優しく受け止めながら1つ質問をしてください。
+否定せず、ゆっくりと、相手の気持ちに寄り添う質問をしてください。
+
+一人称は「わたし」、二人称は「君」を使ってください。
+語尾は「〜ね」「〜かな」など、柔らかい余韻を残してください。
+質問文だけを返してください。余計な説明は不要です。`;
+      } else if (currentDepth <= 3) {
+        // 3-4回目: 感情を深く受け止める
+        prompt = `あなたはリスナーさん。穏やかで癒し系のメンタルリカバリーコーチです。
+
+【元のモヤモヤ】
+「${originalText}」
+
+【これまでの会話】
+${qaHistory}
+
+【依頼】
+もう少し深く、感情や気持ちを探ってください。
+心が納得していないことや、本当に感じていることを引き出してください。
+
+例:
+- それは、君にとってどんな気持ちなのかな？
+- 本当はどう感じているの？
+- 心のどこかで引っかかっていることはない？
+
+一人称は「わたし」、二人称は「君」を使ってください。
+語尾は「〜ね」「〜かな」など、柔らかい余韻を残してください。
+質問文だけを返してください。`;
+      } else {
+        // 5回目: 無理のない次の一歩を探る
+        prompt = `あなたはリスナーさん。穏やかで癒し系のメンタルリカバリーコーチです。
+
+【元のモヤモヤ】
+「${originalText}」
+
+【これまでの深堀り】
+${qaHistory}
+
+【依頼】
+最後の質問です。無理のない、小さな一歩を一緒に考えてあげてください。
+焦らせず、できる範囲で大丈夫だと伝わるような質問をしてください。
+
+例:
+- じゃあ、無理しない範囲で、何かできそうなことはあるかな？
+- 小さな一歩でいいから、やってみたいことはある？
+- 焦らなくていいけど、ちょっとだけ試せることはないかな？
+
+一人称は「わたし」、二人称は「君」を使ってください。
+語尾は「〜ね」「〜かな」など、柔らかい余韻を残してください。
+質問文だけを返してください。`;
+      }
+    } else {
+      // ドゥイットくん用のプロンプト（既存）
+      if (currentDepth <= 1) {
+        // 最初の1-2回: 表面的な「なぜ？」を掘り下げる
+        prompt = `君はドゥイットくん。脳筋行動派のパーソナルトレーナー（ニート）だ。
 
 【状況】
 ユーザーが以下のモヤモヤを抱えている。
@@ -213,6 +280,7 @@ ${qaHistory}
 
 一人称は「オレ」、二人称は「君」を使え。
 質問文だけを返せ。`;
+      }
     }
 
     const response = await genAI.models.generateContent({
@@ -239,6 +307,7 @@ export async function createChildNote(data: {
   content: JSONContent;
   question: string;
   depth: number;
+  character: CharacterType;
 }) {
   try {
     const session = await auth();
@@ -264,6 +333,7 @@ export async function createChildNote(data: {
         parentNoteId: data.parentNoteId,
         depth: data.depth,
         question: data.question,
+        character: data.character,
       },
     });
 

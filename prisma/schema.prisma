@@ -78,6 +78,7 @@ model Note {
   parentNoteId String? // 親ノートのID（深堀りの場合）
   depth        Int     @default(0) // 深堀りの深さ（0=元メモ、1-5=深堀り）
   question     String? // ドゥイットくんからの質問（深堀りノートの場合）
+  character    String? // 深堀りに使用したキャラクター ("doitkun" or "listener")、null=深堀りなし
 
   user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   parent   Note?  @relation("NoteTree", fields: [parentNoteId], references: [id], onDelete: Cascade)
