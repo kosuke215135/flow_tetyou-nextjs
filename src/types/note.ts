@@ -10,8 +10,10 @@ interface NoteModel {
   id: string;
   userId: string;
   text: string;
-  yurufuwaScore: number | null;
-  character?: string | null;
+  parentNoteId: string | null;
+  depth: number;
+  question: string | null;
+  character: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,11 +21,14 @@ interface NoteModel {
 // APIレスポンスの型定義
 interface NoteResponse extends NoteModel {
   user: {
-    name: string | null;
+    name: string;
   };
 }
 
 // 楽観的更新用の型定義
-export type OptimisticNote = NoteResponse & { isOptimistic?: boolean };
+export type OptimisticNote = NoteResponse & {
+  isOptimistic?: boolean;
+  children: OptimisticNote[];
+};
 
 export type { NoteFormData, NoteModel, NoteResponse };
