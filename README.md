@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Flow Tetyou (フロー手帳)
 
-## Getting Started
+AIアシスタント機能を持つNext.jsベースのメモアプリです。モヤモヤしたメモを2人のキャラクターが対話形式でサポートします。
 
-First, run the development server:
+## AIアシスタント
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### ドゥイットくん
+脳筋行動派のパーソナルトレーナー。一人称は「オレ」、二人称は「君」。
+ノートをドゥイットくんエリアにドラッグ&ドロップすると、「なぜ？」と繰り返し問いかけて思考を深堀りします。論理は破綻していても構わない、むしろドゥイットくんらしい脳筋質問で核心を突きます。
+
+### リスナーさん
+傾聴スタイルの優しいカウンセラー。一人称は「わたし」、二人称は「あなた」。
+ノートをリスナーさんエリアにドラッグ&ドロップすると、共感的な質問で思考を整理します。優しく寄り添いながら、あなたの気持ちを丁寧に引き出していきます。
+
+## 主な機能
+
+- リッチテキストエディタでメモを作成（タスクリスト、コードブロック、リンク対応）
+- 2種類のAIアシスタントによる思考サポート
+- ドラッグ&ドロップでノートをAIエリアに投げ込み
+- 5段階の深堀り質問で思考を整理
+- ツリー構造で親ノートと子ノートを可視化
+- 折りたたみ/展開可能な深堀り履歴
+- Google OAuth認証
+
+## 使い方
+
+1. Googleアカウントでログイン
+2. リッチテキストエディタでモヤモヤしたメモを作成
+3. ノートを「ドゥイットくんエリア」または「リスナーさんエリア」にドラッグ&ドロップ
+4. AIが生成した質問に回答
+5. 5回の深堀りで思考を整理
+6. ツリー構造で親子関係を確認
+
+## 技術スタック
+
+- **フレームワーク**: Next.js 15 (App Router)
+- **言語**: TypeScript
+- **データベース**: PostgreSQL + Prisma ORM
+- **認証**: NextAuth.js v5 (Google OAuth)
+- **AI**: Google Gemini API (gemini-2.5-flash)
+- **スタイリング**: Tailwind CSS v4
+- **リッチテキスト**: TipTap editor
+- **ドラッグ&ドロップ**: @dnd-kit
+- **状態管理**: SWR
+- **パッケージマネージャー**: pnpm
+
+## セットアップ
+
+### 環境変数
+
+`.env`ファイルを作成し、以下の環境変数を設定してください:
+
+```env
+DATABASE_URL=              # PostgreSQL接続文字列
+GOOGLE_CLIENT_ID=          # Google OAuth クライアントID
+GOOGLE_CLIENT_SECRET=      # Google OAuth クライアントシークレット
+GEMINI_API_KEY=            # Google Gemini APIキー
+NEXTAUTH_URL=              # NextAuthベースURL (開発環境: http://localhost:3000)
+NEXTAUTH_SECRET=           # NextAuthシークレットキー
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### インストールと起動
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# 依存パッケージのインストール
+pnpm install
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Prisma Clientの生成
+npx prisma generate
 
-## Learn More
+# データベースマイグレーション
+npx prisma migrate dev
 
-To learn more about Next.js, take a look at the following resources:
+# 開発サーバー起動
+pnpm dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+ブラウザで [http://localhost:3000](http://localhost:3000) を開いてください。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 開発コマンド
 
-## Deploy on Vercel
+```bash
+pnpm dev              # 開発サーバー起動 (Turbopack使用)
+pnpm build            # 本番ビルド
+pnpm start            # 本番サーバー起動
+pnpm lint             # ESLint実行
+npx prisma studio     # Prisma Studio GUI起動
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## ライセンス
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+このプロジェクトはMITライセンスの下で公開されています。
