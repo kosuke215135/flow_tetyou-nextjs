@@ -2,12 +2,28 @@
 
 import { useState, useEffect } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { generateDeepDiveQuestion, createChildNote, getNotes, deleteNote } from '@/lib/actions';
+import { generateDeepDiveQuestion, createChildNote, getNotes } from '@/lib/actions';
 import { type JSONContent } from '@tiptap/react';
 import Editor from './Editor';
 import DeepDiveTree from './DeepDiveTree';
 import useSWR, { mutate } from 'swr';
 import { CHARACTERS, type CharacterType } from '@/types/character';
+
+interface Note {
+  id: string;
+  userId: string;
+  text: string;
+  createdAt: Date;
+  updatedAt: Date;
+  parentNoteId: string | null;
+  depth: number;
+  question: string | null;
+  character: string | null;
+  user: {
+    name: string;
+  };
+  children?: Note[];
+}
 
 interface DeepDiveState {
   parentNoteId: string;
@@ -56,12 +72,12 @@ export default function DoitKunArea({ droppedNoteId, onReset }: DoitKunAreaProps
     if (!notesData) return null;
 
     // まず親ノートとして探す
-    const parentNote = notesData.find((n: any) => n.id === noteId);
+    const parentNote = notesData.find((n) => n.id === noteId);
     if (parentNote) return parentNote;
 
     // 子ノートの場合は親を辿る
     for (const note of notesData) {
-      const found = findNoteInChildren(note, noteId);
+      const found = findNoteInChildren(note as Note, noteId);
       if (found) {
         // 最上位の親ノートを返す
         return note;
@@ -70,11 +86,11 @@ export default function DoitKunArea({ droppedNoteId, onReset }: DoitKunAreaProps
     return null;
   };
 
-  const findNoteInChildren = (note: any, targetId: string): any => {
+  const findNoteInChildren = (note: Note, targetId: string) => {
     if (note.id === targetId) return note;
     if (note.children) {
       for (const child of note.children) {
-        const found = findNoteInChildren(child, targetId);
+        const found = findNoteInChildren(child as Note, targetId);
         if (found) return found;
       }
     }
@@ -352,9 +368,7 @@ export default function DoitKunArea({ droppedNoteId, onReset }: DoitKunAreaProps
         {parentNote ? (
           <div className="mb-6">
             <DeepDiveTree
-              parentNote={parentNote as any}
-              currentDepth={deepDiveState.currentDepth}
-              currentQuestion={deepDiveState.question}
+              parentNote={parentNote}
               character={deepDiveState.character}
             />
           </div>

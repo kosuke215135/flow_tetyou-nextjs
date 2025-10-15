@@ -37,7 +37,7 @@ interface DeepDiveTreeProps {
   character: CharacterType;
 }
 
-export default function DeepDiveTree({ parentNote, currentDepth, currentQuestion, character }: DeepDiveTreeProps) {
+export default function DeepDiveTree({ parentNote, character }: DeepDiveTreeProps) {
   const parsedContent = JSON.parse(parentNote.text);
 
   const parentEditor = useEditor({

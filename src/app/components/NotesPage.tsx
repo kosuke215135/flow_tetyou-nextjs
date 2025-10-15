@@ -35,10 +35,14 @@ export default function NotesPage() {
       userId: session.user.id,
       createdAt: new Date(),
       updatedAt: new Date(),
-      yurufuwaScore: null,
+      parentNoteId: null,
+      depth: 0,
+      question: null,
+      character: null,
       user: {
-        name: session.user.name ?? null,
+        name: session.user.name ?? 'Unknown',
       },
+      children: [],
       isOptimistic: true,
     };
 

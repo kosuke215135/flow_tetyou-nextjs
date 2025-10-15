@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import NotesPage from "@/app/components/NotesPage";
 import DoitKunArea from '@/app/components/DoitKunArea';
-import { DndContext, DragEndEvent } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, PointerSensor, KeyboardSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { deleteNote } from '@/lib/actions';
 import { mutate } from 'swr';
 
@@ -13,7 +13,13 @@ export default function Home() {
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  // @dnd-kit sensors設定（パフォーマンス改善）
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor)
+  );
+
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && over.id === 'doitkun-drop-zone') {
@@ -30,11 +36,11 @@ export default function Home() {
         }
       }
     }
-  };
+  }, []);
 
-  const handleMouseDown = () => {
+  const handleMouseDown = useCallback(() => {
     setIsResizing(true);
-  };
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -62,15 +68,18 @@ export default function Home() {
   }, [isResizing]);
 
   return (
-    <DndContext onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <main className="flex min-h-screen">
         <div className="flex-1">
           <NotesPage />
         </div>
         <aside
           ref={sidebarRef}
-          style={{ width: `${sidebarWidth}px`, height: '100vh' }}
-          className="sticky top-0 relative p-8 bg-gray-50 border-l border-gray-200 overflow-y-auto"
+          style={{
+            width: `${sidebarWidth}px`,
+            height: '100vh',
+          }}
+          className="sticky top-0 p-8 bg-gray-50 border-l border-gray-200 overflow-y-auto"
         >
           <div
             onMouseDown={handleMouseDown}
