@@ -56,16 +56,19 @@ export default function DoitKunArea({ droppedNoteId, onReset }: DoitKunAreaProps
   const findParentNote = (noteId: string): NoteWithChildren | null => {
     if (!notesData) return null;
 
+    // notesDataの型をNoteWithChildren[]としてキャスト
+    const typedNotes = notesData as NoteWithChildren[];
+
     // まず親ノートとして探す
-    const parentNote = notesData.find((n) => n.id === noteId);
-    if (parentNote) return parentNote as NoteWithChildren;
+    const parentNote = typedNotes.find((n) => n.id === noteId);
+    if (parentNote) return parentNote;
 
     // 子ノートの場合は親を辿る
-    for (const note of notesData) {
-      const found = findNoteInChildren(note as NoteWithChildren, noteId);
+    for (const note of typedNotes) {
+      const found = findNoteInChildren(note, noteId);
       if (found) {
         // 最上位の親ノートを返す
-        return note as NoteWithChildren;
+        return note;
       }
     }
     return null;
