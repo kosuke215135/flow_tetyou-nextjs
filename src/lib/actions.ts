@@ -8,6 +8,7 @@ import { GoogleGenAI } from "@google/genai";
 import { type JSONContent } from '@tiptap/react';
 import { extractTextFromContent } from '@/lib/utils';
 import { type CharacterType } from '@/types/character';
+import { generatePrompt } from '@/lib/prompts';
 
 export async function createNote(data: NoteFormData) {
   try {
@@ -152,136 +153,31 @@ export async function generateDeepDiveQuestion(noteId: string, currentDepth: num
       })
       .join('\n\n');
 
-    // キャラクターとdepthに応じてプロンプトを変更
-    let prompt = '';
+    // 直前の質問と回答を取得（depth > 0の場合のみ）
+    let previousQuestion: string | undefined;
+    let previousAnswer: string | undefined;
 
-    if (character === 'listener') {
-      // リスナーさん用のプロンプト
-      if (currentDepth <= 1) {
-        // 最初の1-2回: 優しく受け止める
-        prompt = `あなたはリスナーさん。穏やかで癒し系のメンタルリカバリーコーチです。
+    if (currentDepth > 0) {
+      const previousChildren = allChildren.filter(
+        (child: { id: string; depth: number }) =>
+          child.id !== originalNote.id && child.depth === currentDepth
+      );
 
-【状況】
-ユーザーが以下のモヤモヤを抱えています。
-「${originalText}」
-
-${qaHistory ? `【これまでの会話】\n${qaHistory}\n\n` : ''}
-
-【依頼】
-このモヤモヤについて、優しく受け止めながら1つ質問をしてください。
-否定せず、ゆっくりと、相手の気持ちに寄り添う質問をしてください。
-
-一人称は「わたし」、二人称は「君」を使ってください。
-語尾は「〜ね」「〜かな」など、柔らかい余韻を残してください。
-質問文だけを返してください。余計な説明は不要です。`;
-      } else if (currentDepth <= 3) {
-        // 3-4回目: 感情を深く受け止める
-        prompt = `あなたはリスナーさん。穏やかで癒し系のメンタルリカバリーコーチです。
-
-【元のモヤモヤ】
-「${originalText}」
-
-【これまでの会話】
-${qaHistory}
-
-【依頼】
-もう少し深く、感情や気持ちを探ってください。
-心が納得していないことや、本当に感じていることを引き出してください。
-
-例:
-- それは、君にとってどんな気持ちなのかな？
-- 本当はどう感じているの？
-- 心のどこかで引っかかっていることはない？
-
-一人称は「わたし」、二人称は「君」を使ってください。
-語尾は「〜ね」「〜かな」など、柔らかい余韻を残してください。
-質問文だけを返してください。`;
-      } else {
-        // 5回目: 無理のない次の一歩を探る
-        prompt = `あなたはリスナーさん。穏やかで癒し系のメンタルリカバリーコーチです。
-
-【元のモヤモヤ】
-「${originalText}」
-
-【これまでの深堀り】
-${qaHistory}
-
-【依頼】
-最後の質問です。無理のない、小さな一歩を一緒に考えてあげてください。
-焦らせず、できる範囲で大丈夫だと伝わるような質問をしてください。
-
-例:
-- じゃあ、無理しない範囲で、何かできそうなことはあるかな？
-- 小さな一歩でいいから、やってみたいことはある？
-- 焦らなくていいけど、ちょっとだけ試せることはないかな？
-
-一人称は「わたし」、二人称は「君」を使ってください。
-語尾は「〜ね」「〜かな」など、柔らかい余韻を残してください。
-質問文だけを返してください。`;
-      }
-    } else {
-      // ドゥイットくん用のプロンプト（既存）
-      if (currentDepth <= 1) {
-        // 最初の1-2回: 表面的な「なぜ？」を掘り下げる
-        prompt = `君はドゥイットくん。脳筋行動派のパーソナルトレーナー（ニート）だ。
-
-【状況】
-ユーザーが以下のモヤモヤを抱えている。
-「${originalText}」
-
-${qaHistory ? `【これまでの会話】\n${qaHistory}\n\n` : ''}
-
-【依頼】
-このモヤモヤの「なぜ？」を1つ聞け。
-表面的な理由を探るんだ。シンプルに、ストレートに。
-ドゥイットくんらしい脳筋質問が良い。
-
-一人称は「オレ」、二人称は「君」を使え。
-質問文だけを返せ。余計な説明は不要だ。`;
-    } else if (currentDepth <= 3) {
-      // 3-4回目: 感情や動機を探る
-      prompt = `君はドゥイットくん。脳筋行動派のパーソナルトレーナー（ニート）だ。
-
-【元のモヤモヤ】
-「${originalText}」
-
-【これまでの会話】
-${qaHistory}
-
-【依頼】
-もっと深く掘り下げろ。感情や本当の動機を探るんだ。
-前の回答を踏まえて、核心に迫る質問をしろ。
-
-例:
-- それで君はどう感じてるんだ？
-- 本当はどうしたいんだ？
-- 何が君を止めてるんだ？
-
-一人称は「オレ」、二人称は「君」を使え。
-質問文だけを返せ。`;
-    } else {
-      // 5回目: 具体的な行動を引き出す
-      prompt = `君はドゥイットくん。脳筋行動派のパーソナルトレーナー（ニート）だ。
-
-【元のモヤモヤ】
-「${originalText}」
-
-【これまでの深堀り】
-${qaHistory}
-
-【依頼】
-最後の質問だ。具体的な行動を引き出せ。
-「で、どうしたいんだ？」という視点で聞け。
-
-例:
-- で、結局どうしたいんだ？
-- 明日から何ができる？
-- 最初の一歩は何だ？
-
-一人称は「オレ」、二人称は「君」を使え。
-質問文だけを返せ。`;
+      if (previousChildren.length > 0) {
+        const lastChild = previousChildren[previousChildren.length - 1];
+        previousQuestion = lastChild.question || undefined;
+        previousAnswer = extractTextFromContent(JSON.parse(lastChild.text));
       }
     }
+
+    // プロンプトを生成
+    const prompt = generatePrompt(character, {
+      originalText,
+      qaHistory,
+      currentDepth,
+      previousQuestion,
+      previousAnswer,
+    });
 
     const response = await genAI.models.generateContent({
       model: "gemini-2.5-flash",
