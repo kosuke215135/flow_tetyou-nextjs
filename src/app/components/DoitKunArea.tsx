@@ -86,7 +86,7 @@ export default function DoitKunArea({ droppedNoteId, onReset }: DoitKunAreaProps
     return null;
   };
 
-  const findNoteInChildren = (note: Note, targetId: string) => {
+  const findNoteInChildren = (note: Note, targetId: string): Note | null => {
     if (note.id === targetId) return note;
     if (note.children) {
       for (const child of note.children) {
