@@ -72,7 +72,7 @@ export default function DoitKunArea({ droppedNoteId, onReset }: DoitKunAreaProps
     if (!notesData) return null;
 
     // まず親ノートとして探す
-    const parentNote = notesData.find((n) => n.id === noteId);
+    const parentNote = notesData.find((n: Note) => n.id === noteId);
     if (parentNote) return parentNote;
 
     // 子ノートの場合は親を辿る
