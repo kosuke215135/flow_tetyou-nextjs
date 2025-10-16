@@ -145,8 +145,8 @@ export async function generateDeepDiveQuestion(noteId: string, currentDepth: num
     });
 
     const qaHistory = allChildren
-      .filter(child => child.id !== originalNote.id && child.depth <= currentDepth)
-      .map((child, index) => {
+      .filter((child: { id: string; depth: number }) => child.id !== originalNote.id && child.depth <= currentDepth)
+      .map((child: { text: string; question: string | null }, index: number) => {
         const answerText = extractTextFromContent(JSON.parse(child.text));
         return `Q${index + 1}: ${child.question}\nA${index + 1}: ${answerText}`;
       })
