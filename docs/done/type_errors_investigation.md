@@ -43,10 +43,10 @@ Property 'user' is missing in type '{ children: ... }' but required in type 'Not
 
 # ゴール
 
-- [ ] Vercelビルドが成功する（型エラー0件）
-- [ ] 全コンポーネントで共通のNote型定義を使用
-- [ ] Prismaから返される型と完全に一致
-- [ ] 不要なprops定義を削除
+- [x] Vercelビルドが成功する（型エラー0件）
+- [x] 全コンポーネントで共通のNote型定義を使用
+- [x] Prismaから返される型と完全に一致
+- [x] 不要なprops定義を削除
 
 # データベース関連の変更
 
@@ -82,7 +82,11 @@ Property 'user' is missing in type '{ children: ... }' but required in type 'Not
   - notesの型アサーションを追加（`as OptimisticNote[]`）
 - [x] ビルドを実行して型エラーがないことを確認
   - **ビルド成功！型エラー0件**
-- [ ] ユーザーにチェックをもらう(必須)
+- [x] src/lib/actions.tsの型エラー修正
+  - filter/mapのコールバック引数に型アノテーション追加
+- [x] package.jsonにpostinstallスクリプト追加（根本原因の解決）
+  - Vercelでprisma generateが自動実行されるように
+- [x] ユーザーにチェックをもらう(必須)
 
 # 修正内容
 
@@ -113,6 +117,21 @@ export type NoteWithChildren = NoteModel & {
 
 ## 5. src/app/components/NotesPage.tsx
 - `notes`を`OptimisticNote[]`として型アサーション
+
+## 6. src/lib/actions.ts
+- filter/mapのコールバック引数に型アノテーションを追加
+```typescript
+.filter((child: { id: string; depth: number }) => ...)
+.map((child: { text: string; question: string | null }, index: number) => ...)
+```
+
+## 7. package.json（根本原因の解決）
+- `postinstall`スクリプトを追加
+```json
+"postinstall": "prisma generate"
+```
+- これによりVercelでも`pnpm install`後に自動的にPrisma Clientが生成される
+- ローカルとVercelの動作を完全に統一
 
 # ビルド結果
 
