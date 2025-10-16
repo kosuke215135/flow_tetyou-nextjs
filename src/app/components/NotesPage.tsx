@@ -110,7 +110,7 @@ export default function NotesPage() {
         </div>
       )
     }
-    return <NotesList notes={notes} className="w-full" />;
+    return <NotesList notes={notes as OptimisticNote[]} className="w-full" />;
   };
 
   return (

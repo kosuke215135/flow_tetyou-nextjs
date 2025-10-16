@@ -7,7 +7,7 @@ import Link from '@tiptap/extension-link';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { all, createLowlight } from 'lowlight';
 import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
-import { NoteModel } from '@/types/note';
+import { type NoteWithChildren } from '@/types/note';
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
@@ -15,15 +15,6 @@ import { getTreeColor, type TreeColor } from '@/lib/treeColors';
 import { CHARACTERS, type CharacterType } from '@/types/character';
 
 const lowlight = createLowlight(all);
-
-type NoteWithChildren = NoteModel & {
-  user: {
-    name: string | null;
-  };
-  children?: NoteWithChildren[];
-  question?: string | null;
-  depth?: number;
-};
 
 interface NoteCardProps {
   note: NoteWithChildren;

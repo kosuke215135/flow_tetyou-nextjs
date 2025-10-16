@@ -8,22 +8,7 @@ import Editor from './Editor';
 import DeepDiveTree from './DeepDiveTree';
 import useSWR, { mutate } from 'swr';
 import { CHARACTERS, type CharacterType } from '@/types/character';
-
-interface Note {
-  id: string;
-  userId: string;
-  text: string;
-  createdAt: Date;
-  updatedAt: Date;
-  parentNoteId: string | null;
-  depth: number;
-  question: string | null;
-  character: string | null;
-  user: {
-    name: string;
-  };
-  children?: Note[];
-}
+import { type NoteWithChildren } from '@/types/note';
 
 interface DeepDiveState {
   parentNoteId: string;
@@ -68,16 +53,19 @@ export default function DoitKunArea({ droppedNoteId, onReset }: DoitKunAreaProps
   );
 
   // 親ノートを見つける（最初にドロップされたノート）
-  const findParentNote = (noteId: string) => {
+  const findParentNote = (noteId: string): NoteWithChildren | null => {
     if (!notesData) return null;
 
+    // notesDataの型をNoteWithChildren[]としてキャスト
+    const typedNotes = notesData as NoteWithChildren[];
+
     // まず親ノートとして探す
-    const parentNote = notesData.find((n) => n.id === noteId);
+    const parentNote = typedNotes.find((n) => n.id === noteId);
     if (parentNote) return parentNote;
 
     // 子ノートの場合は親を辿る
-    for (const note of notesData) {
-      const found = findNoteInChildren(note as Note, noteId);
+    for (const note of typedNotes) {
+      const found = findNoteInChildren(note, noteId);
       if (found) {
         // 最上位の親ノートを返す
         return note;
@@ -86,11 +74,11 @@ export default function DoitKunArea({ droppedNoteId, onReset }: DoitKunAreaProps
     return null;
   };
 
-  const findNoteInChildren = (note: Note, targetId: string) => {
+  const findNoteInChildren = (note: NoteWithChildren, targetId: string): NoteWithChildren | null => {
     if (note.id === targetId) return note;
     if (note.children) {
       for (const child of note.children) {
-        const found = findNoteInChildren(child as Note, targetId);
+        const found = findNoteInChildren(child, targetId);
         if (found) return found;
       }
     }
