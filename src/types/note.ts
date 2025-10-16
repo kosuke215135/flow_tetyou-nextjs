@@ -25,6 +25,14 @@ interface NoteResponse extends NoteModel {
   };
 }
 
+// 子ノートを再帰的に含むNote型（コンポーネント間で共通利用）
+export type NoteWithChildren = NoteModel & {
+  user: {
+    name: string | null;
+  };
+  children?: NoteWithChildren[];
+};
+
 // 楽観的更新用の型定義
 export type OptimisticNote = NoteResponse & {
   isOptimistic?: boolean;

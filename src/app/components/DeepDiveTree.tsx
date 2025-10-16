@@ -11,29 +11,11 @@ import { all, createLowlight } from 'lowlight';
 import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import { getTreeColor, type TreeColor } from '@/lib/treeColors';
 import { CHARACTERS, type CharacterType } from '@/types/character';
+import { type NoteWithChildren } from '@/types/note';
 const lowlight = createLowlight(all);
 
-// DeepDiveTree用のNote型
-type DeepDiveNote = {
-  id: string;
-  userId: string;
-  text: string;
-  createdAt: Date;
-  updatedAt: Date;
-  parentNoteId?: string | null;
-  depth?: number;
-  question?: string | null;
-  character?: string | null;
-  user: {
-    name: string | null;
-  };
-  children?: DeepDiveNote[];
-};
-
 interface DeepDiveTreeProps {
-  parentNote: DeepDiveNote;
-  currentDepth: number;
-  currentQuestion: string;
+  parentNote: NoteWithChildren;
   character: CharacterType;
 }
 
@@ -93,7 +75,7 @@ export default function DeepDiveTree({ parentNote, character }: DeepDiveTreeProp
 }
 
 // 質問と回答のペアを表示するコンポーネント
-function QAItem({ note, index, treeColor, character }: { note: DeepDiveNote; index: number; treeColor: TreeColor; character: CharacterType }) {
+function QAItem({ note, index, treeColor, character }: { note: NoteWithChildren; index: number; treeColor: TreeColor; character: CharacterType }) {
   const parsedContent = JSON.parse(note.text);
   const depth = note.depth || 1;
   const isLastQuestion = depth === 5;
