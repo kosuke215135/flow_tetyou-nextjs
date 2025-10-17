@@ -57,21 +57,7 @@ export default function NotesPage() {
         return;
       }
 
-      try {
-        const scoreResponse = await fetch('/api/update-score', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ noteId: response.note.id }),
-        });
-
-        if (!scoreResponse.ok) {
-          console.error('Failed to update score:', await scoreResponse.text());
-        }
-      } catch (scoreError) {
-        console.error('Error updating score:', scoreError);
-      } finally {
-        await mutate();
-      }
+      await mutate();
     } catch (err) {
       console.error('Error in handleNoteSubmit:', err);
       await mutate(notes, false);
