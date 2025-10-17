@@ -2,7 +2,7 @@
 
 AIアシスタント機能を持つNext.jsベースのメモアプリです。モヤモヤしたメモを2人のキャラクターが対話形式でサポートします。
 
-![Flow Tetyou アプリスクリーンショット](./public/app_screenshot.png)
+![Flow Tetyou アプリスクリーンショット](public/app_screenshot.png)
 
 ## AIアシスタント
 
